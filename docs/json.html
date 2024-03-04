@@ -1,0 +1,755 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+   	<title> 一起玩耍JSON 在线解析</title>
+<link rel='stylesheet' id='wp-block-library-css' href='https://www.jyshare.com/wp-includes/css/dist/block-library/style.min.css?ver=6.4.3' type='text/css' media='all' />
+<link rel='stylesheet' id='wpProQuiz_front_style-css' href='https://www.jyshare.com/wp-content/plugins/Wp-Pro-Quiz/css/wpProQuiz_front.min.css?ver=0.37' type='text/css' media='all' />
+<meta name="keywords" content="JSON 在线解析,JSON 格式化工具,JSON格式化,JSON 数据">
+<meta name="description" content="JSON 在线解析是一款 JSON 格式化工具，你可以在线验证、编辑和格式化 JSON 数据，格式化后的 JSON 数据以树形结构展示，更易于阅读，此外还可以将 JSON 转换为 XML、YAML、CSV格式。..">
+<link rel="icon" href="https://static.figma.com/app/icon/1/favicon.ico"> 
+			
+    	
+    <!-- Bootstrap Core CSS -->
+	<link rel="stylesheet" href="https://www.jyshare.com/wp-content/themes/toolrunoob2/bootstrap.min.css">
+
+   <!-- Custom Fonts -->
+   <link href="https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/font-awesome/5.15.4/css/all.min.css" rel="stylesheet" type="text/css">
+    <!--[if lt IE 9]> 
+        <script src="https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/html5shiv/r29/html5.min.js"></script>
+        <script src="https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    <!-- PHP 代码 -->
+    <link rel="stylesheet" href="https://www.jyshare.com/wp-content/themes/toolrunoob2/style.css?version=1.309">
+
+    <script src="https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/jquery/2.2.4/jquery.min.js"></script>
+  <script src="https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/clipboard.js/2.0.4/clipboard.min.js"></script>
+</head>
+
+<body>
+
+<nav class="navbar navbar-expand-lg fixed-top navbar-dark " style="background: #182737;"> 
+  <a class="navbar-brand mr-auto mr-lg-2" href="/">菜鸟工具</a>
+  <button class="navbar-toggler p-0 border-0" type="button" id="navbarSideCollapse" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+</nav>
+<script>
+var is_home = false;
+</script>
+<style>
+.runoob-page-content {
+    margin: 0 20px;
+}
+</style>
+
+
+<div class="runoob-page-content">
+	
+
+<link rel="stylesheet" type="text/css" href="https://lf26-cdn-tos.bytecdntp.com/cdn/expire-1-M/jsoneditor/5.5.10/jsoneditor.min.css" />
+<script type="text/javascript" src="https://lf9-cdn-tos.bytecdntp.com/cdn/expire-1-M/jsoneditor/5.5.10/jsoneditor.min.js"></script>
+
+<style type="text/css">
+.container {
+	width: 98%;
+}
+.jsoneditor-poweredBy {
+	display: none;
+}
+div.jsoneditor-menu {
+  background-color: #96b97d;
+  
+}
+div.jsoneditor {
+	border: 1px solid #96b97d;
+}
+@media (min-width: 768px) {
+	.col-sm-2 {
+	    width: 4%;
+	    margin-left: -15px;
+	}
+	.col-sm-5 {
+		width: 48%
+	}
+}
+</style>
+<div class="row">
+
+	<div class="col-md-12">
+		
+				<div class="card">
+			<div class="card-header">
+			<form class="form-inline" role="form">
+			<div class="col-md-8">
+			   <button type="button" class="btn btn-outline-primary mr-sm-1" id="submitBTN" onclick="beautify();"><i class="fa fa-expand"></i> 格式化</button>
+               <button type="button" class="btn btn-outline-info mr-sm-1" id="submitBTN2" onclick="minify();"><i class="fa fa-compress"></i> 压缩</button>
+               <button type="button" class="btn btn-warning mr-sm-1" id="submitBTN3">验证</button>
+               <button type="button" class="btn btn-warning mr-sm-1" onclick ="jsonToxml();">JSON 转 XML</button>
+               <button type="button" class="btn btn-warning mr-sm-1" onclick ="jsonTocsv();">JSON 转 CSV</button>
+               <button type="button" class="btn btn-warning mr-sm-1" onclick ="jsonToyaml();">JSON 转 YAML</button> 
+				</div><div class="col-md-4">
+                <label class="float-right"><strong style="font-size: 16px"><i class="fa fa-cogs"></i> JSON 在线解析</strong></label>
+			</div>
+			</form>
+			</div>
+			<div class="card-body">
+			<div class="col-md-12" id="warning" style="display: none;">
+				<div class="alert alert-warning">
+				   <a href="#" class="close" data-dismiss="alert">
+				      &times;
+				   </a>
+				   <p><strong>警告！</strong>JSON 格式错误。</p>
+				   <p id="warning-info"></p>
+				</div>
+			</div>
+			 <div class="row">
+      			<div class="col-sm-5"><div id="jsoneditor1"  style="height: 600px; width: 100%"></div></div>
+      			<div class="col-sm-1">  
+      				<button class="btn btn-outline-primary"  id="toTree"><i class="fa fa-arrow-right" aria-hidden="true"></i></button><p></p>
+					<p><button class="btn btn-outline-dark"  id="toCode"><i class="fa fa-arrow-left" aria-hidden="true"></i></button></p>
+      			</div>
+      			<div class="col-sm-6"><div id="jsoneditor2" style="height: 600px; width: 100%"></div></div>
+   			</div>
+
+
+			</div>
+			<div class="panel-footer"></div>
+		</div>
+	</div>
+
+</div>
+<script type="text/javascript" src="//static.jyshare.com/assets/js/jquery.format.js"></script>
+<script type="text/javascript" src="//static.jyshare.com/assets/js/ObjTree.min.js"></script>
+<script>
+
+// create the editor
+var container1 = document.getElementById('jsoneditor1');
+var container2 = document.getElementById('jsoneditor2');
+
+var optionsOutput1 = {
+	mode : 'code',
+	error : function(err) {
+		alert('EF1 ->' + err.toString());
+	}
+};
+
+var optionsOutput2 = {
+	mode : 'tree',
+	modes : [ 'view', 'form', 'text','code', 'tree'], // allowed modes
+	error : function(err) {
+		alert('EF1 ->' + err.toString());
+	}
+};
+var json ={"sites":{"site":[{"id":"1","name":"菜鸟教程","url":"www.runoob.com"},{"id":"2","name":"菜鸟工具","url":"www.jyshare.com"},{"id":"3","name":"Google","url":"www.google.com"}]}};
+
+var editor1 = new JSONEditor(container1, optionsOutput1, json);
+var editor2 = new JSONEditor(container2, optionsOutput2, json);
+editor2.expandAll();
+$("#toTree").click(function() {
+	var jsonStr = editor1.getText();
+	editor2.setText(jsonStr);
+	editor2.setMode("tree");
+	editor2.expandAll();
+});
+$("#toCode").click(function() {
+	var jsonStr = editor2.getText();
+	var jsonObject = JSON.parse(jsonStr);
+	editor1.setText(JSON.stringify(jsonObject, null, 2));
+	editor1.setMode("code");
+})
+
+
+
+function beautify() {
+	var content = editor1.getText();
+
+	if (content.trim().length == 0) {
+		return false;
+	}
+	try {
+
+		var jsonStr = editor1.getText();
+
+		var jsonObject = JSON.parse(jsonStr);
+		editor1.setMode("code");
+		editor1.setText(JSON.stringify(jsonObject, null, 2));
+		
+		editor2.setText(JSON.stringify(jsonObject, null, 0));
+		editor2.setMode("tree");
+		editor2.expandAll()
+
+		
+	} catch (e) {
+		$("#warning").html("<div class=\"alert alert-danger\">JSON 数据错误："+e+"</div>").show().delay(5000).fadeOut();
+	}
+}
+function minify() {
+
+	var content = editor1.getText();
+
+	if (content.trim().length == 0) {
+		return false;
+	}
+
+
+	try {
+		var jsonStr = editor1.getText();
+
+		var jsonObject = JSON.parse(jsonStr);
+		
+		editor1.setMode("code");
+		editor1.setText(JSON.stringify(jsonObject, null, 0));
+		editor2.setText(JSON.stringify(jsonObject, null, 0));
+		editor2.setMode("tree");
+		
+		editor2.expandAll()
+	} catch (e) {
+		$("#warning").html("<div class=\"alert alert-danger\">JSON 数据错误："+e+"</div>").show().delay(5000).fadeOut();
+	}
+}
+$("#submitBTN3").click(function() {
+	var content = editor1.getText();
+
+	if (content.trim().length == 0) {
+		return false;
+	}
+	
+	try {
+		var jsonStr = editor1.getText();
+		var json = JSON.parse(jsonStr);
+		$("#warning").html("<div class=\"alert alert-success\">JSON 数据合法</div>").show().delay(5000).fadeOut();
+	} catch (e) {
+		$("#warning").html("<div class=\"alert alert-danger\">JSON 数据错误："+e+"</div>").show().delay(5000).fadeOut();
+	}
+
+});
+function jsonToxml() {
+
+	var content = editor1.getText();
+
+	if (content.trim().length == 0) {
+		return false;
+	}
+
+
+	try {
+		var jsonStr = editor1.getText();
+		var json = JSON.parse(jsonStr);
+		var xotree = new XML.ObjTree();
+		var xml = xotree.writeXML(json);
+		xml = decodeSpecialCharacter(xml);
+		editor2.setMode("text");		
+		formatXML =  $.format(xml, {method: 'xml'});
+		editor2.setText(formatXML);
+	} catch (e) {
+		$("#warning").html("<div class=\"alert alert-danger\">JSON 数据错误："+e+"</div>").show().delay(5000).fadeOut();
+	}
+}
+function decodeSpecialCharacter(str) {
+	return str.replace(/\&amp;/g, '&').replace(/\&gt;/g, '>').replace(/\&lt;/g,
+			'<').replace(/\&quot;/g, '"');
+}
+
+function jsonTocsv() {
+
+	var content = editor1.getText();
+
+	if (content.trim().length == 0) {
+		return false;
+	}
+
+	try {
+		var jsonStr = editor1.getText();
+		var json = JSON.parse(jsonStr);
+		var csv = jsonTocsvbyjson(json);
+		editor2.setMode("text");	
+		editor2.setText(csv);
+
+		
+	} catch (e) {
+		$("#warning").html("<div class=\"alert alert-danger\">JSON 数据错误："+e+"</div>").show().delay(5000).fadeOut();
+	}
+}
+function jsonTocsvbyjson(data) {
+
+	arr = [];
+	flag = true;
+
+	var header = "";
+	var content = "";
+	var headFlag = true;
+
+	try {
+
+		var type1 = typeof data;
+
+		if (type1 != "object") {
+			data = processJSON($.parseJSON(data));
+		} else {
+			data = processJSON(data);
+		}
+
+	} catch (e) {
+		setMessage("error", "Error in Convert : add proper input format");
+		return false;
+	}
+
+	$.each(data, function(k, value) {
+		if (k % 2 == 0) {
+			if (headFlag) {
+				if (value != "end") {
+					header += value + ",";
+				} else {
+					// remove last colon from string
+					header = header.substring(0, header.length - 1);
+					headFlag = false;
+				}
+			}
+		} else {
+			if (value != "end") {
+				var temp = data[k - 1];
+				if (header.search(temp) != -1) {
+					content += value + ",";
+				}
+			} else {
+				// remove last colon from string
+				content = content.substring(0, content.length - 1);
+				content += "\n";
+			}
+		}
+
+	});
+
+	return (header + "\n" + content);
+}
+function processJSON(data) {
+
+	$.each(data, function(k, data1) {
+
+		var type1 = typeof data1;
+
+		if (type1 == "object") {
+
+			flag = false;
+			processJSON(data1);
+			arr.push("end");
+			arr.push("end");
+
+		} else {
+			arr.push(k, data1);
+		}
+
+	});
+
+	return arr;
+}
+
+function jsonToyaml() {
+
+	var content = editor1.getText();
+
+	if (content.trim().length == 0) {
+		return false;
+	}
+
+	try {
+		var jsonStr = editor1.getText();
+		var yaml = json2yaml(jsonStr);
+		editor2.setMode("text");
+		editor2.setText(yaml);
+	} catch (e) {
+		$("#warning").html("<div class=\"alert alert-danger\">JSON 数据错误："+e+"</div>").show().delay(5000).fadeOut();
+	}
+	last_action = "jsonToyaml";
+}
+
+var spacing = " ";
+function json2yaml(obj) {
+
+  if (typeof obj == 'string') {
+    obj = JSON.parse(obj);
+  }
+
+ 
+  var ret = [];
+  console.log(typeof obj);
+  convert(obj, ret);
+  return ret.join("\n");
+};
+
+
+function getType(obj) {
+  var type = typeof obj;
+  
+  if (obj instanceof Array) {
+    return 'array';
+  } else if (type == 'string') {
+    return 'string';
+  } else if (type == 'boolean') {
+    return 'boolean';
+  } else if (type == 'number') {
+    return 'number';
+  } else if (type == 'undefined' || obj === null) {
+    return 'null';
+  } else {
+    return 'hash';
+  }
+}
+
+function convert(obj, ret) {
+  var type = getType(obj);
+
+  switch(type) {
+    case 'array':
+      convertArray(obj, ret);
+      break;
+    case 'hash':
+      convertHash(obj, ret);
+      break;
+    case 'string':
+      convertString(obj, ret);
+      break;
+    case 'null':
+      ret.push('null');
+      break;
+    case 'number':
+      ret.push(obj.toString());
+      break;
+    case 'boolean':
+      ret.push(obj ? 'true' : 'false');
+      break;
+  }
+}
+function convertArray(obj, ret) {
+  for (var i=0; i<obj.length; i++) {
+    var ele = obj[i];
+    var recurse = [];
+    convert(ele, recurse);
+
+    for (var j=0; j<recurse.length; j++) {
+      ret.push((j == 0 ? "- \n   " : spacing) + recurse[j]);
+    }
+  }
+}
+
+function convertHash(obj, ret) {
+  for (var k in obj) {
+    var recurse = [];
+    if (obj.hasOwnProperty(k)) {
+      var ele = obj[k];
+      convert(ele, recurse);
+      var type = getType(ele);
+      if (type == 'string' || type == 'null' || type == 'number' || type == 'boolean') {
+        ret.push(normalizeString(k) + ': ' + recurse[0]);
+      } else {
+        ret.push(normalizeString(k) + ': ');
+        for (var i=0; i<recurse.length; i++) {
+          ret.push(spacing + recurse[i]);
+        }
+      }
+    }
+  }
+}
+
+function normalizeString(str) {
+  if (str.match(/^[\w]+$/)) {
+    return str;
+  } else {
+    return JSON.stringify(str);
+  }
+}
+
+function convertString(obj, ret) {
+  ret.push(normalizeString(obj));
+}
+</script>
+</div>
+
+
+<!-- Footer -->
+<footer class="page-footer  pt-4">
+  <!-- Copyright -->
+  <div class="footer-copyright text-center py-3">Copyright &copy;  
+    <a href="https://blog.17wanshua.cn/"> 一起玩耍_博客</a>  <a href="https://paiban.17wanshua.cn/"> 一起玩耍_排版工具</a> 2024 备案号：<a target="_blank" rel="nofollow" href="https://beian.miit.gov.cn/">沪ICP备19020392号</a>
+  </div>
+  <!-- Copyright -->
+
+</footer>
+
+
+
+
+
+
+
+
+
+<script src="https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/bootstrap/4.6.0/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+<script>
+
+
+$(function() {
+	//代码高亮
+	$('pre').each(function() {
+		if(!$(this).hasClass("prettyprint")) {
+			$(this).addClass("prettyprint");
+		}
+	});
+ 
+  $('[data-toggle="tooltip"]').tooltip();
+
+  if(is_home) {
+    $(window).scroll(function () {
+      var _stop = $(window).scrollTop();
+      if(_stop>=100) {
+        $("#go-top").fadeIn();
+        
+      }else {
+        $("#go-top").fadeOut();
+      }
+    });
+    _current_hash = window.location.hash;
+    console.log(_current_hash);
+    if(_current_hash) {
+     
+        var $targetEle = $(_current_hash);
+        var sTop =  $targetEle.offset().top;
+        $('html, body').stop().animate({
+            'scrollTop':sTop-100
+        }, 300, 'swing', function (e) {
+         // window.location.hash = targetEle;
+        }); 
+        console.log(sTop);
+        return false;
+     
+    }
+    $("#go-top").click(function(event){	
+     $('html,body').animate({scrollTop:0}, 100);
+     return false;
+    });
+    // 导航
+    var _html_nav='<a class="nav-link active" href="javascript:void();"><i class="fa fa-compass" aria-hidden="true"></i> 快速导航</a>';
+    var _html_right_nav = '<button class="dropdown-item" href="#"><i class="fa fa-th-list" aria-hidden="true"></i> 快速导航</button><div class="dropdown-divider"></div>';
+    var _html_left_nav = '<dt><span class="show-list"></span></dt>';
+    for (var i=0;i<data_hrefs.length;i++)
+    { 
+        id="runoob-goto-" + data_hrefs[i];
+        _html_nav += '<a class="nav-link" href="#'+id+'">'+$("#"+id).data("text")+'</a>';
+        _html_right_nav +='<button class="dropdown-item" onclick="location.href=\'#'+id+'\'" type="button"><i class="fa fa-caret-right" aria-hidden="true"></i> '+$("#"+id).data("text")+'</button>' ;
+        _html_left_nav +='<dd><a href="#'+id+'" class="auto-scroll" data-offset="98" data-speed="500">'+$("#"+id).data("text")+'</a></dd>';
+    }
+    $(".nav-underline").html(_html_nav);
+    $("#right_nav_list").html(_html_right_nav);
+    $("#goto").html(_html_left_nav);
+    if($(".nav-scroller").is(":visible")){
+      $('a[href^="#"]').on('click', function (e) {
+          e.preventDefault();
+          $(this).addClass('nav-underline-active');
+          $(this).siblings().removeClass('nav-underline-active');
+          var targetEle = this.hash;
+          var $targetEle = $(targetEle);
+          var sTop =  $targetEle.offset().top;
+          $('html, body').stop().animate({
+              'scrollTop':sTop-100
+          }, 300, 'swing', function () {
+          //   window.location.hash = targetEle;
+          });
+      });
+    } else {
+      $('a[href^="#"]').on('click', function (e) {
+          e.preventDefault();
+          var targetEle = this.hash;
+          var $targetEle = $(targetEle);
+          var sTop =  $targetEle.offset().top;
+          $('html, body').stop().animate({
+              'scrollTop':sTop-56   
+          }, 300, 'swing', function () {
+          //   window.location.hash = targetEle;
+          });
+      });
+    }
+  } else { 
+    $("#top").hide();
+  }
+  
+
+  // search
+  if($('#search-name').length){
+      var _href=  $("#search-name .nav-underline-active").attr("href");
+  }
+ 
+  $('#search-name li a').each(function(){
+    $(this).on("click", function(e){
+      e.preventDefault();
+      _href = $(this).attr('href');
+      $(this).removeClass("text-muted").addClass("nav-underline-active");
+      $(this).parent().siblings().find("a").addClass("text-muted").removeClass("nav-underline-active");
+    //  console.log(_href);
+    });
+    
+  })
+
+  $('#search-button').on("click", function(e){
+   // console.log(_href);
+    _hmt.push(['_trackEvent', 'Search', 'Click', '搜索工具']);
+    keyword = $(".search").find("input:text").val();
+    window.open(_href + keyword, '_blank');
+  });
+  $(".search").find("input:text").keypress(function (e) {
+    var key = e.which;
+    if(key == 13)  // the enter key code
+    {
+      window.open(_href + $(this).val(), '_blank'); 
+      return false;  
+    }
+  });  
+});
+
+(function($){ 
+  var p=$('.runoob-item-index'); 
+  if(p.length<1) return;
+  var arr=[];
+  function part_offset_top() {
+    p.each(function () {
+      var of=$(this).offset();
+      arr.push(Math.floor(of.top));
+    });
+  }
+  function goto_current(index) {
+    var a=$('#goto dd');
+    var b=$('#goto dt');
+    if(a.length<1) return;
+    var h=a.outerHeight();
+    if (!a.eq(index).hasClass('current')) {
+      a.removeClass('current');
+      a.eq(index).addClass('current');
+     // console.log(index)
+      b.animate({
+        'top': h*index+(a.outerHeight()-b.outerHeight())/2+1
+      },50);
+    }
+  }
+  function window_scroll() {
+    var st=window.pageYOffset
+    			|| document.documentElement.scrollTop
+    			|| document.body.scrollTop
+    			|| 0;
+    var limit=Math.ceil(st+98);
+    var index=0;
+    for (var i = 0; i < arr.length; i++) {
+      if (limit>=arr[i]) {
+        index=i;
+      }else{
+        break;
+      }
+    }
+    if (index<0) index=0;
+    if (!p.eq(index).hasClass('current')) {
+      p.removeClass('current');
+      p.eq(index).addClass('current');
+      goto_current(index);
+    }
+  }
+  part_offset_top();
+  setTimeout(window_scroll,0);
+  $(window).on('scroll',window_scroll);
+})(jQuery);
+/* --侧边栏滚动时固定-- */
+(function($){
+  var s=$('.sidebar');
+  
+  if(s.length<1) return;
+  var c=s.children('.content-sidebar');
+  if(c.length<1) return;
+  var $parent=s.parent();
+  if($parent.length<1) return;
+  var start=0,stop=0,cHeight=0;
+  function init() {
+    var soffset=s.offset();
+    start=soffset.top;
+    stop=start+$parent.height();
+    cinit();
+  }
+  function cinit() {
+    cHeight=c.height();
+  }
+  function cClear(){
+    c.removeClass('fixed');
+    c.removeClass('absolute');
+  }
+  function check_scroll(){
+    var st=window.pageYOffset
+    			|| document.documentElement.scrollTop
+    			|| document.body.scrollTop
+    			|| 0;
+    if (st<=start) {
+      cClear();
+    }
+    if (st>=stop-cHeight) {
+      c.removeClass('fixed');
+      c.addClass('absolute');
+      return;
+    }
+    if (st<stop-cHeight && st>start) {
+      c.removeClass('absolute');
+      c.addClass('fixed');
+    }
+  }
+  
+  init();
+  check_scroll();
+  $(window).on('resize',init);
+  $(window).on('scroll',check_scroll);
+})(jQuery);
+
+(function () {
+  'use strict'
+
+  document.querySelector('#navbarSideCollapse').addEventListener('click', function () {
+    document.querySelector('.offcanvas-collapse').classList.toggle('open')
+  })
+})()
+</script>
+<div style="display:none;">
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?6d663ac80d8b95a60e359ffed9f3d0d0";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+</div>
+
+
+<div class="modal fade" id="tg-1" tabindex="-1" role="dialog" aria-labelledby="tg-1" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title font-weight-bold text-danger"><i class="fas fa-comments-dollar"></i> textxx</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span> 
+        </button>
+      </div>
+      <div class="modal-body">
+      <div class="text-center">
+      xxx
+      </div>
+       
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+      
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+
+</html>
