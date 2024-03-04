@@ -120,8 +120,8 @@ div.jsoneditor {
 	</div>
 
 </div>
-<script type="text/javascript" src="//static.jyshare.com/assets/js/jquery.format.js"></script>
-<script type="text/javascript" src="//static.jyshare.com/assets/js/ObjTree.min.js"></script>
+<script type="text/javascript" src="./js/jquery.format.js"></script>
+<script type="text/javascript" src="./js/ObjTree.min.js"></script>
 <script>
 
 // create the editor
@@ -498,179 +498,12 @@ $(function() {
  
   $('[data-toggle="tooltip"]').tooltip();
 
-  if(is_home) {
-    $(window).scroll(function () {
-      var _stop = $(window).scrollTop();
-      if(_stop>=100) {
-        $("#go-top").fadeIn();
-        
-      }else {
-        $("#go-top").fadeOut();
-      }
-    });
-    _current_hash = window.location.hash;
-    console.log(_current_hash);
-    if(_current_hash) {
-     
-        var $targetEle = $(_current_hash);
-        var sTop =  $targetEle.offset().top;
-        $('html, body').stop().animate({
-            'scrollTop':sTop-100
-        }, 300, 'swing', function (e) {
-         // window.location.hash = targetEle;
-        }); 
-        console.log(sTop);
-        return false;
-     
-    }
-    
-    // 导航
-    var _html_nav='<a class="nav-link active" href="javascript:void();"><i class="fa fa-compass" aria-hidden="true"></i> 快速导航</a>';
-    var _html_right_nav = '<button class="dropdown-item" href="#"><i class="fa fa-th-list" aria-hidden="true"></i> 快速导航</button><div class="dropdown-divider"></div>';
-    var _html_left_nav = '<dt><span class="show-list"></span></dt>';
-    for (var i=0;i<data_hrefs.length;i++)
-    { 
-        id="runoob-goto-" + data_hrefs[i];
-        _html_nav += '<a class="nav-link" href="#'+id+'">'+$("#"+id).data("text")+'</a>';
-        _html_right_nav +='<button class="dropdown-item" onclick="location.href=\'#'+id+'\'" type="button"><i class="fa fa-caret-right" aria-hidden="true"></i> '+$("#"+id).data("text")+'</button>' ;
-        _html_left_nav +='<dd><a href="#'+id+'" class="auto-scroll" data-offset="98" data-speed="500">'+$("#"+id).data("text")+'</a></dd>';
-    }
-    $(".nav-underline").html(_html_nav);
-    $("#right_nav_list").html(_html_right_nav);
-    $("#goto").html(_html_left_nav);
-   
-  } else { 
-    $("#top").hide();
-  }
-  
-
-  // search
-  
 });
 
-(function($){ 
-  var p=$('.runoob-item-index'); 
-  if(p.length<1) return;
-  var arr=[];
-  function part_offset_top() {
-    p.each(function () {
-      var of=$(this).offset();
-      arr.push(Math.floor(of.top));
-    });
-  }
-  function goto_current(index) {
-    var a=$('#goto dd');
-    var b=$('#goto dt');
-    if(a.length<1) return;
-    var h=a.outerHeight();
-    if (!a.eq(index).hasClass('current')) {
-      a.removeClass('current');
-      a.eq(index).addClass('current');
-     // console.log(index)
-      b.animate({
-        'top': h*index+(a.outerHeight()-b.outerHeight())/2+1
-      },50);
-    }
-  }
-  function window_scroll() {
-    var st=window.pageYOffset
-    			|| document.documentElement.scrollTop
-    			|| document.body.scrollTop
-    			|| 0;
-    var limit=Math.ceil(st+98);
-    var index=0;
-    for (var i = 0; i < arr.length; i++) {
-      if (limit>=arr[i]) {
-        index=i;
-      }else{
-        break;
-      }
-    }
-    if (index<0) index=0;
-    if (!p.eq(index).hasClass('current')) {
-      p.removeClass('current');
-      p.eq(index).addClass('current');
-      goto_current(index);
-    }
-  }
-  part_offset_top();
-  setTimeout(window_scroll,0);
-  $(window).on('scroll',window_scroll);
-})(jQuery);
-/* --侧边栏滚动时固定-- */
-(function($){
-  var s=$('.sidebar');
-  
-  if(s.length<1) return;
-  var c=s.children('.content-sidebar');
-  if(c.length<1) return;
-  var $parent=s.parent();
-  if($parent.length<1) return;
-  var start=0,stop=0,cHeight=0;
-  function init() {
-    var soffset=s.offset();
-    start=soffset.top;
-    stop=start+$parent.height();
-    cinit();
-  }
-  function cinit() {
-    cHeight=c.height();
-  }
-  function cClear(){
-    c.removeClass('fixed');
-    c.removeClass('absolute');
-  }
-  function check_scroll(){
-    var st=window.pageYOffset
-    			|| document.documentElement.scrollTop
-    			|| document.body.scrollTop
-    			|| 0;
-    if (st<=start) {
-      cClear();
-    }
-    if (st>=stop-cHeight) {
-      c.removeClass('fixed');
-      c.addClass('absolute');
-      return;
-    }
-    if (st<stop-cHeight && st>start) {
-      c.removeClass('absolute');
-      c.addClass('fixed');
-    }
-  }
-  
-  init();
-  check_scroll();
-  $(window).on('resize',init);
-  $(window).on('scroll',check_scroll);
-})(jQuery);
+
 
 </script>
 
-
-
-<div class="modal fade" id="tg-1" tabindex="-1" role="dialog" aria-labelledby="tg-1" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title font-weight-bold text-danger"><i class="fas fa-comments-dollar"></i> textxx</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span> 
-        </button>
-      </div>
-      <div class="modal-body">
-      <div class="text-center">
-      xxx
-      </div>
-       
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
-      
-      </div>
-    </div>
-  </div>
-</div>
 </body>
 
 </html>
