@@ -29,25 +29,20 @@
   <script src="https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/clipboard.js/2.0.4/clipboard.min.js"></script>
 </head>
 
-<body>
+<body style="padding-top:0px;">
 
-<nav class="navbar navbar-expand-lg fixed-top navbar-dark " style="background: #182737;"> 
-  <a class="navbar-brand mr-auto mr-lg-2" href="/">菜鸟工具</a>
-  <button class="navbar-toggler p-0 border-0" type="button" id="navbarSideCollapse" aria-label="Toggle navigation">
-    <span class="navbar-toggler-icon"></span>
-  </button>
-</nav>
+
 <script>
 var is_home = false;
 </script>
 <style>
-.runoob-page-content {
+.page-content {
     margin: 0 20px;
 }
 </style>
 
 
-<div class="runoob-page-content">
+<div class="page-content">
 	
 
 <link rel="stylesheet" type="text/css" href="https://lf26-cdn-tos.bytecdntp.com/cdn/expire-1-M/jsoneditor/5.5.10/jsoneditor.min.css" />
@@ -85,6 +80,9 @@ div.jsoneditor {
 			<div class="card-header">
 			<form class="form-inline" role="form">
 			<div class="col-md-8">
+			   <div class="mr-sm-1" style="display: inline-block;">
+				<img style="height:44px;" src="./img/logo.png">JSON格式化工具
+	    		   </div>	
 			   <button type="button" class="btn btn-outline-primary mr-sm-1" id="submitBTN" onclick="beautify();"><i class="fa fa-expand"></i> 格式化</button>
                <button type="button" class="btn btn-outline-info mr-sm-1" id="submitBTN2" onclick="minify();"><i class="fa fa-compress"></i> 压缩</button>
                <button type="button" class="btn btn-warning mr-sm-1" id="submitBTN3">验证</button>
@@ -144,7 +142,7 @@ var optionsOutput2 = {
 		alert('EF1 ->' + err.toString());
 	}
 };
-var json ={"sites":{"site":[{"id":"1","name":"菜鸟教程","url":"www.runoob.com"},{"id":"2","name":"菜鸟工具","url":"www.jyshare.com"},{"id":"3","name":"Google","url":"www.google.com"}]}};
+var json ={"sites":{"site":[{"id":"1","name":"一起玩耍 排版工具","url":"paiban.17wanshua.cn"},{"id":"2","name":"一起玩耍","url":"www.17wanshua.cn"},{"id":"3","name":"Google","url":"www.google.com"},{"id":"4","name":"Baidu","url":"www.baidu.com"}]}};
 
 var editor1 = new JSONEditor(container1, optionsOutput1, json);
 var editor2 = new JSONEditor(container2, optionsOutput2, json);
@@ -527,10 +525,7 @@ $(function() {
         return false;
      
     }
-    $("#go-top").click(function(event){	
-     $('html,body').animate({scrollTop:0}, 100);
-     return false;
-    });
+    
     // 导航
     var _html_nav='<a class="nav-link active" href="javascript:void();"><i class="fa fa-compass" aria-hidden="true"></i> 快速导航</a>';
     var _html_right_nav = '<button class="dropdown-item" href="#"><i class="fa fa-th-list" aria-hidden="true"></i> 快速导航</button><div class="dropdown-divider"></div>';
@@ -545,68 +540,14 @@ $(function() {
     $(".nav-underline").html(_html_nav);
     $("#right_nav_list").html(_html_right_nav);
     $("#goto").html(_html_left_nav);
-    if($(".nav-scroller").is(":visible")){
-      $('a[href^="#"]').on('click', function (e) {
-          e.preventDefault();
-          $(this).addClass('nav-underline-active');
-          $(this).siblings().removeClass('nav-underline-active');
-          var targetEle = this.hash;
-          var $targetEle = $(targetEle);
-          var sTop =  $targetEle.offset().top;
-          $('html, body').stop().animate({
-              'scrollTop':sTop-100
-          }, 300, 'swing', function () {
-          //   window.location.hash = targetEle;
-          });
-      });
-    } else {
-      $('a[href^="#"]').on('click', function (e) {
-          e.preventDefault();
-          var targetEle = this.hash;
-          var $targetEle = $(targetEle);
-          var sTop =  $targetEle.offset().top;
-          $('html, body').stop().animate({
-              'scrollTop':sTop-56   
-          }, 300, 'swing', function () {
-          //   window.location.hash = targetEle;
-          });
-      });
-    }
+   
   } else { 
     $("#top").hide();
   }
   
 
   // search
-  if($('#search-name').length){
-      var _href=  $("#search-name .nav-underline-active").attr("href");
-  }
- 
-  $('#search-name li a').each(function(){
-    $(this).on("click", function(e){
-      e.preventDefault();
-      _href = $(this).attr('href');
-      $(this).removeClass("text-muted").addClass("nav-underline-active");
-      $(this).parent().siblings().find("a").addClass("text-muted").removeClass("nav-underline-active");
-    //  console.log(_href);
-    });
-    
-  })
-
-  $('#search-button').on("click", function(e){
-   // console.log(_href);
-    _hmt.push(['_trackEvent', 'Search', 'Click', '搜索工具']);
-    keyword = $(".search").find("input:text").val();
-    window.open(_href + keyword, '_blank');
-  });
-  $(".search").find("input:text").keypress(function (e) {
-    var key = e.which;
-    if(key == 13)  // the enter key code
-    {
-      window.open(_href + $(this).val(), '_blank'); 
-      return false;  
-    }
-  });  
+  
 });
 
 (function($){ 
