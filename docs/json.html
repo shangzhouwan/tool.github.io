@@ -142,7 +142,7 @@ var optionsOutput2 = {
 		alert('EF1 ->' + err.toString());
 	}
 };
-var json ={"sites":{"site":[{"id":"1","name":"一起玩耍 排版工具","url":"paiban.17wanshua.cn"},{"id":"2","name":"一起玩耍","url":"www.17wanshua.cn"},{"id":"3","name":"Google","url":"www.google.com"},{"id":"4","name":"Baidu","url":"www.baidu.com"}]}};
+var json ={"sites":{"site":[{"id":"1","name":"一起玩耍排版工具","url":"paiban.17wanshua.cn"},{"id":"2","name":"一起玩耍","url":"www.17wanshua.cn"},{"id":"3","name":"Google","url":"www.google.com"},{"id":"4","name":"Baidu","url":"www.baidu.com"}]}};
 
 var editor1 = new JSONEditor(container1, optionsOutput1, json);
 var editor2 = new JSONEditor(container2, optionsOutput2, json);
@@ -471,18 +471,16 @@ function convertString(obj, ret) {
 <!-- Footer -->
 <footer class="page-footer  pt-4">
   <!-- Copyright -->
-  <div class="footer-copyright text-center py-3">Copyright &copy;  
-    <a href="https://blog.17wanshua.cn/"> 一起玩耍_博客</a>  <a href="https://paiban.17wanshua.cn/"> 一起玩耍_排版工具</a> 2024 备案号：<a target="_blank" rel="nofollow" href="https://beian.miit.gov.cn/">沪ICP备19020392号</a>
+  <div class="footer-copyright text-center py-3">Copyright &copy;<span id="year">2024</span>
+    <a href="https://blog.17wanshua.cn/"> 一起玩耍_博客</a>  <a href="https://paiban.17wanshua.cn/"> 一起玩耍排版工具</a>  备案号：<a target="_blank" rel="nofollow" href="https://beian.miit.gov.cn/">沪ICP备19020392号</a>
   </div>
   <!-- Copyright -->
 
 </footer>
-
-
-
-
-
-
+<script>
+    var now=new Date();
+    document.getElementById("year").innerHTML=now.getFullYear();
+</script>
 
 
 
