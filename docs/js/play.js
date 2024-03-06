@@ -1,5 +1,5 @@
-// let media="https://cdn.jsdelivr.net/gh/Meekdai/Gmemp@main/media/"
-let media ="/music/"
+ let media="https://cdn.jsdelivr.net/gh/shangzhouwan/shangzhouwan.github.io@v1.0/docs/music/"
+// let media ="/music/"
 // Cache references to DOM elements.
 let elms = ['track','artist', 'timer', 'duration','post', 'playBtn', 'pauseBtn', 'prevBtn', 'nextBtn', 'playlistBtn', 'postBtn', 'waveBtn', 'volumeBtn', 'progress', 'progressBar','waveCanvas', 'loading', 'playlist', 'list', 'volume', 'barEmpty', 'barFull', 'sliderBtn'];
 elms.forEach(function(elm) {
