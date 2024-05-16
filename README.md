@@ -1,4 +1,4 @@
-# shangzhouwan.github.io 项目说明：
+# tool.github.io 项目说明：
 
 使用一起玩耍<a href="https://paiban.17wanshua.cn/">网页版一键在线排版工具</a>，网址：https://paiban.17wanshua.cn/ 请务必收藏。
 
