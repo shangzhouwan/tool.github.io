@@ -20,10 +20,10 @@
         .setCardXSpacing(250)
         .setCardYSpacing(150)
         .setOrientationVertical()
-        .setSingleParentEmptyCard(true, {label: 'ADD'})
+        .setSingleParentEmptyCard(true, {label: '添加'})
     
       const f3Card = f3Chart.setCard(f3.CardHtml)
-        .setCardDisplay([["first name","last name"],["birthday"]])
+        .setCardDisplay([["名字","姓氏"],["生日"]])
         .setCardDim({})
         .setMiniTree(true)
         .setStyle('imageCircle')
@@ -32,7 +32,7 @@
       
       const f3EditTree = f3Chart.editTree()
         .fixed(true)
-        .setFields(["first name","last name","birthday","avatar"])
+        .setFields(["名字","姓氏","生日","头像"])
         .setEditFirst(true)
       
       f3EditTree.setEdit()
@@ -55,11 +55,11 @@
           "id": "0",
           "rels": {},
           "data": {
-            "first name": "Name",
-            "last name": "Surname",
-            "birthday": 1970,
-            "avatar": "https://static8.depositphotos.com/1009634/988/v/950/depositphotos_9883921-stock-illustration-no-user-profile-picture.jpg",
-            "gender": "M"
+            "名字": "Name",
+            "姓氏": "Surname",
+            "生日": 1970,
+            "头像": "https://static8.depositphotos.com/1009634/988/v/950/depositphotos_9883921-stock-illustration-no-user-profile-picture.jpg",
+            "性别": "M"
           }
         }
       ]
