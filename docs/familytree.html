@@ -53,6 +53,19 @@
       return window['myfamily'];
     }
 
+    const newDiv = document.createElement('div');
+    newDiv.textContent = "这是雪鹏所做的演示的孙中山部分族谱";
+    
+    newDiv.style.position = 'absolute';
+    newDiv.style.left = '50%';
+    newDiv.style.top = '50px';
+    newDiv.style.transform = 'translate(-50%, -50%)';
+   
+    const parentDiv = document.getElementById('FamilyChart');
+    parentDiv.style.position = 'relative'; 
+    parentDiv.style.height = '100vh'; 
+    
+    parentDiv.appendChild(newDiv);
   </script>
 </body>
 </html>
