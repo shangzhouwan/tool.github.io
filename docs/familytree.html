@@ -23,7 +23,7 @@
         .setSingleParentEmptyCard(true, {label: '添加'})
     
       const f3Card = f3Chart.setCard(f3.CardHtml)
-        .setCardDisplay([["名字","姓氏"],["生日"]])
+        .setCardDisplay([["姓名"],["生日"]])
         .setCardDim({})
         .setMiniTree(true)
         .setStyle('imageCircle')
@@ -32,7 +32,7 @@
       
       const f3EditTree = f3Chart.editTree()
         .fixed(true)
-        .setFields(["名字","姓氏","生日","头像"])
+        .setFields(["姓名","生日","头像"])
         .setEditFirst(true)
       
       f3EditTree.setEdit()
@@ -55,8 +55,7 @@
           "id": "0",
           "rels": {},
           "data": {
-            "名字": "三",
-            "姓氏": "张",
+            "姓名": "张三",
             "生日": 1970,
             "头像": "https://static8.depositphotos.com/1009634/988/v/950/depositphotos_9883921-stock-illustration-no-user-profile-picture.jpg",
             "性别": "M"
