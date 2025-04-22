@@ -11,18 +11,7 @@
 <body>
   <div id="FamilyChart" class="f3" style="width:100%;height:900px;margin:auto;background-color:rgb(33,33,33);color:#fff;"></div>
   <script type="module">
-    window['myfamily'] =[
-        {
-          "id": "0",
-          "rels": {},
-          "data": {
-            "姓名": "孙中山",
-            "生日": "1866年11月12日-1925年3月12日",
-            "头像": "",
-            "性别": "M"
-          }
-        }
-      ];
+    window['myfamily'] =[{"id":"0","rels":{"spouses":["fbf4e290-6020-436a-b2ca-17b906edef87","2bb09904-6c2d-4723-bb44-23e6be50ea7a","f911bbd4-136a-459f-a5f5-18b183e6e77d"],"children":["13f8a650-ec6f-4411-9b39-1ab5c922d5b9","6f03ac06-863b-48d0-8b6a-7b230161851a","532bffd1-a957-4b43-bae9-87e2ed294015","686b0e66-0429-4abf-8363-94337a174475"],"father":"d43b616e-7a10-4442-b574-62ba426fff4d","mother":"950b6bab-0fd4-4fab-b23f-c0e4e130d106"},"data":{"姓名":"孙中山","生日":"1866年11月12日-1925年3月12日","头像":"","性别":"M"},"main":true},{"id":"fbf4e290-6020-436a-b2ca-17b906edef87","data":{"gender":"F","姓名":"宋庆龄","生日":"1893年1月27日—1981年5月29日","头像":""},"rels":{"spouses":["0"],"children":["686b0e66-0429-4abf-8363-94337a174475"]},"main":false},{"id":"2bb09904-6c2d-4723-bb44-23e6be50ea7a","data":{"gender":"F","姓名":"卢慕贞","生日":"1867年7月30日—1952年9月7日","头像":""},"rels":{"spouses":["0"],"children":["6f03ac06-863b-48d0-8b6a-7b230161851a","532bffd1-a957-4b43-bae9-87e2ed294015"]},"main":false},{"id":"f911bbd4-136a-459f-a5f5-18b183e6e77d","data":{"gender":"F","姓名":"大月薰","生日":"1888年—1970年","头像":""},"rels":{"spouses":["0"],"children":["13f8a650-ec6f-4411-9b39-1ab5c922d5b9"]},"main":false},{"id":"6f03ac06-863b-48d0-8b6a-7b230161851a","data":{"gender":"M","姓名":"孙科","生日":"1891年10月20日—1973年9月13日","头像":""},"rels":{"father":"0","mother":"2bb09904-6c2d-4723-bb44-23e6be50ea7a"},"main":false},{"id":"532bffd1-a957-4b43-bae9-87e2ed294015","data":{"gender":"F","姓名":"孙娫","生日":"1894年—1913年","头像":""},"rels":{"father":"0","mother":"2bb09904-6c2d-4723-bb44-23e6be50ea7a"},"main":false},{"id":"13f8a650-ec6f-4411-9b39-1ab5c922d5b9","data":{"gender":"F","姓名":"宫川富美子","生日":"1906年—1990年","头像":""},"rels":{"father":"0","mother":"f911bbd4-136a-459f-a5f5-18b183e6e77d"},"main":false},{"id":"d43b616e-7a10-4442-b574-62ba426fff4d","data":{"gender":"M","姓名":"孙达成","生日":"1813年-1888年","头像":""},"rels":{"children":["0","aa4f1eef-8028-45c5-a28c-ee88c6937c77"],"spouses":["950b6bab-0fd4-4fab-b23f-c0e4e130d106"]},"main":false},{"id":"686b0e66-0429-4abf-8363-94337a174475","data":{"gender":"F","姓名":"隋永清(养女)","生日":"1957年12月-","头像":""},"rels":{"father":"0","mother":"fbf4e290-6020-436a-b2ca-17b906edef87"},"main":false},{"id":"950b6bab-0fd4-4fab-b23f-c0e4e130d106","data":{"gender":"F"},"rels":{"spouses":["d43b616e-7a10-4442-b574-62ba426fff4d"],"children":["0","aa4f1eef-8028-45c5-a28c-ee88c6937c77"]},"to_add":true,"main":false},{"id":"aa4f1eef-8028-45c5-a28c-ee88c6937c77","data":{"gender":"M","姓名":"孙眉","生日":"1854年-1915年","头像":""},"rels":{"father":"d43b616e-7a10-4442-b574-62ba426fff4d","mother":"950b6bab-0fd4-4fab-b23f-c0e4e130d106"},"main":false}];
     create(data())
 
     function create(data) {
@@ -34,7 +23,7 @@
         .setSingleParentEmptyCard(true, {label: '添加'})
     
       const f3Card = f3Chart.setCard(f3.CardHtml)
-        .setCardDisplay([["姓名"],["生日"]])
+        .setCardDisplay([["姓名"],["生卒年月"]])
         .setCardDim({})
         .setMiniTree(true)
         .setStyle('imageCircle')
@@ -43,7 +32,7 @@
       
       const f3EditTree = f3Chart.editTree()
         .fixed(true)
-        .setFields(["姓名","生日","头像"])
+        .setFields(["姓名","生卒年月","头像"])
         .setEditFirst(true)
       
       f3EditTree.setEdit()
