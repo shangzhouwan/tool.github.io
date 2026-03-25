@@ -17,6 +17,9 @@
       --accent: #4493f8;
       --accent-soft: rgba(68, 147, 248, 0.16);
       --code: #11161d;
+      --preview-bg: #0d1117;
+      --preview-text: #e6edf3;
+      --preview-code-bg: #0b0f14;
     }
 
     * {
@@ -251,7 +254,7 @@
       background: #30363d;
       color: #fff;
     }
-     .preview-actions {
+    .preview-actions {
       display: inline-flex;
       align-items: center;
       gap: 8px;
@@ -283,8 +286,36 @@
       color: #fff;
     }
 
-    .meta {
+    .color-tools {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      padding: 4px 8px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #0b1016;
       color: var(--muted);
+      font-size: 12px;
+    }
+
+    .color-tools label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+
+    .color-input {
+      width: 28px;
+      height: 28px;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .meta {
+      color: var(--preview-text);
       font-size: 13px;
     }
 
@@ -303,7 +334,8 @@
       width: 100%;
       border: 1px solid var(--border);
       border-radius: 14px;
-      background: #0d1117;
+      background: var(--preview-bg);
+      color: var(--preview-text);
       overflow-y: auto;
       overflow-x: hidden;
     }
@@ -324,6 +356,7 @@
       padding: 48px 40px 64px;
       line-height: 1.8;
       font-size: var(--preview-font-size, 16px);
+      color: var(--preview-text);
       word-break: break-word;
       overflow-wrap: anywhere;
       white-space: normal;
@@ -379,7 +412,7 @@
     }
 
     .markdown pre {
-      background: var(--code);
+      background: var(--preview-code-bg);
       border: 1px solid var(--border);
       border-radius: 12px;
       padding: 16px;
@@ -407,8 +440,8 @@
       margin: 0;
       padding: 20px 24px;
       min-height: 70vh;
-      background: #0b0f14;
-      color: #dce5ef;
+      background: var(--preview-code-bg);
+      color: var(--preview-text);
       overflow-y: auto;
       overflow-x: hidden;
       font-size: var(--code-font-size, 14px);
@@ -526,6 +559,14 @@
               <button id="fontReset" class="font-button" type="button">字体</button>
               <button id="fontIncrease" class="font-button" type="button">字体变大</button>
             </div>
+            <div class="color-tools">
+              <label>背景
+                <input id="bgColorInput" class="color-input" type="color" value="#0d1117">
+              </label>
+              <label>字体
+                <input id="textColorInput" class="color-input" type="color" value="#e6edf3">
+              </label>
+            </div>
           </div>
           <div id="meta" class="meta">未打开文件</div>
         </div>
@@ -559,6 +600,8 @@
     const fontDecrease = document.getElementById('fontDecrease');
     const fontReset = document.getElementById('fontReset');
     const fontIncrease = document.getElementById('fontIncrease');
+    const bgColorInput = document.getElementById('bgColorInput');
+    const textColorInput = document.getElementById('textColorInput');
 
     let currentTab = 'preview';
     let currentFilePath = '';
@@ -581,6 +624,8 @@
     fontDecrease.addEventListener('click', () => updateFontSize(-1));
     fontIncrease.addEventListener('click', () => updateFontSize(1));
     fontReset.addEventListener('click', resetFontSize);
+    bgColorInput.addEventListener('input', applyPreviewColors);
+    textColorInput.addEventListener('input', applyPreviewColors);
 
     function switchTab(tab) {
       currentTab = tab;
@@ -591,7 +636,13 @@
     }
 
     async function loadFolder(fileList) {
-      const files = Array.from(fileList || []);
+      const files = Array.from(fileList || []).sort((a, b) => {
+        const timeDiff = (a.lastModified || 0) - (b.lastModified || 0);
+        if (timeDiff !== 0) return timeDiff;
+        const aPath = a.webkitRelativePath || a.name;
+        const bPath = b.webkitRelativePath || b.name;
+        return aPath.localeCompare(bPath, 'zh-CN', { numeric: true, sensitivity: 'base' });
+      });
       fileMap = new Map();
 
       if (!files.length) {
@@ -656,7 +707,8 @@
         path,
         kind,
         children: [],
-        file: null
+        file: null,
+        sortTime: Number.POSITIVE_INFINITY
       };
     }
 
@@ -679,15 +731,18 @@
 
         if (isLast) {
           next.file = file;
+          next.sortTime = file.lastModified || 0;
         }
 
         node = next;
+        node.sortTime = Math.min(node.sortTime, file.lastModified || 0);
       }
     }
 
     function sortTree(node) {
       node.children.sort((a, b) => {
-        if (a.kind !== b.kind) return a.kind === 'directory' ? -1 : 1;
+        const timeDiff = (a.sortTime || 0) - (b.sortTime || 0);
+        if (timeDiff !== 0) return timeDiff;
         return a.name.localeCompare(b.name, 'zh-CN', { numeric: true, sensitivity: 'base' });
       });
       node.children.forEach(sortTree);
@@ -803,6 +858,26 @@
       document.documentElement.style.setProperty('--code-font-size', codeFontSize + 'px');
     }
 
+    function applyPreviewColors() {
+      const bg = bgColorInput.value || '#0d1117';
+      const text = textColorInput.value || '#e6edf3';
+      document.documentElement.style.setProperty('--preview-bg', bg);
+      document.documentElement.style.setProperty('--preview-text', text);
+      document.documentElement.style.setProperty('--preview-code-bg', darkenColor(bg, 18));
+    }
+
+    function darkenColor(hex, amount) {
+      const value = (hex || '#0d1117').replace('#', '');
+      const full = value.length === 3
+        ? value.split('').map(char => char + char).join('')
+        : value.padEnd(6, '0').slice(0, 6);
+      const num = Number.parseInt(full, 16);
+      const r = Math.max(0, (num >> 16) - amount);
+      const g = Math.max(0, ((num >> 8) & 255) - amount);
+      const b = Math.max(0, (num & 255) - amount);
+      return '#' + [r, g, b].map(part => part.toString(16).padStart(2, '0')).join('');
+    }
+
     async function openFile(path) {
       const file = fileMap.get(path);
       if (!file) return;
@@ -856,6 +931,7 @@
     }
 
     applyFontSize();
+    applyPreviewColors();
     
     function renderInline(text) {
       const escaped = escapeHtml(text);
