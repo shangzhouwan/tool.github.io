@@ -25,7 +25,8 @@
 
     body {
       margin: 0;
-      min-height: 100vh;
+      height: 100vh;
+      overflow: hidden;
       background: radial-gradient(circle at top, #161b22 0, #0d1117 42%, #090c10 100%);
       color: var(--text);
       font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
@@ -34,29 +35,65 @@
     .layout {
       display: grid;
       grid-template-columns: 360px 1fr;
-      min-height: 100vh;
+      height: 100vh;
+      overflow: hidden;
     }
 
     .sidebar {
       border-right: 1px solid var(--border);
       background: rgba(13, 17, 23, 0.96);
       padding: 20px 16px;
-      overflow: auto;
-    }
-
-    .content {
-      min-width: 0;
       display: flex;
       flex-direction: column;
-      padding: 20px 24px;
-      gap: 16px;
+      gap: 18px;
+      height: 100vh;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .sidebar .panel {
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      flex: 1;
+      margin-top: 0 !important;
     }
 
     .hero {
       display: flex;
       flex-direction: column;
       gap: 12px;
-      margin-bottom: 8px;
+      margin-bottom: 0;
+      flex-shrink: 0;
+    }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      flex-shrink: 0;
+    }
+
+    .tree-root {
+      padding: 10px 8px 20px;
+      min-height: 0;
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+
+    .content {
+      min-width: 0;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      box-sizing: border-box;
+      padding: 20px 24px;
+      gap: 16px;
+      overflow: hidden;
+      overflow-x: hidden;
     }
 
     .title {
@@ -70,13 +107,6 @@
       color: var(--muted);
       line-height: 1.6;
       font-size: 14px;
-    }
-
-    .toolbar {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      flex-wrap: wrap;
     }
 
     .button {
@@ -110,6 +140,13 @@
       backdrop-filter: blur(8px);
     }
 
+    .content > .panel {
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      flex: 1;
+    }
+
     .tree-header {
       display: flex;
       align-items: center;
@@ -118,10 +155,6 @@
       border-bottom: 1px solid var(--border);
       color: var(--muted);
       font-size: 13px;
-    }
-
-    .tree-root {
-      padding: 10px 8px 20px;
     }
 
     .tree-group {
@@ -204,16 +237,23 @@
     }
 
     .preview-body {
-      min-height: 70vh;
+      min-height: 0;
+      height: 100%;
+      flex: 1;
       padding: 16px;
+      display: flex;
+      overflow: hidden;
     }
 
     .surface {
-      min-height: 100%;
+      min-height: 0;
+      height: 100%;
+      width: 100%;
       border: 1px solid var(--border);
       border-radius: 14px;
       background: #0d1117;
-      overflow: auto;
+      overflow-y: auto;
+      overflow-x: hidden;
     }
 
     .empty {
@@ -233,6 +273,8 @@
       line-height: 1.8;
       font-size: 16px;
       word-break: break-word;
+      overflow-wrap: anywhere;
+      white-space: normal;
     }
 
     .markdown h1,
@@ -289,7 +331,10 @@
       border: 1px solid var(--border);
       border-radius: 12px;
       padding: 16px;
-      overflow: auto;
+      overflow-x: hidden;
+      white-space: pre-wrap;
+      word-break: break-word;
+      overflow-wrap: anywhere;
     }
 
     .markdown pre code {
@@ -312,10 +357,14 @@
       min-height: 70vh;
       background: #0b0f14;
       color: #dce5ef;
-      overflow: auto;
+      overflow-y: auto;
+      overflow-x: hidden;
       font-size: 14px;
       line-height: 1.7;
       font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      white-space: pre-wrap;
+      word-break: break-word;
+      overflow-wrap: anywhere;
     }
 
     .image-preview {
@@ -349,15 +398,30 @@
     @media (max-width: 900px) {
       .layout {
         grid-template-columns: 1fr;
+        height: auto;
+        overflow: visible;
       }
 
       .sidebar {
+        height: auto;
         max-height: 45vh;
+        overflow: hidden;
       }
 
       .content {
+        height: auto;
         padding: 16px;
+        overflow: visible;
       }
+
+      .sidebar .panel {
+        flex: none;
+      }
+
+      .tree-root {
+        flex: none;
+      }
+
 
       .markdown {
         padding: 28px 20px 40px;
