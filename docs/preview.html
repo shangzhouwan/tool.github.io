@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>本地文件夹预览</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --panel: #0f1722;
+      --panel-soft: #161b22;
+      --panel-hover: #1f2630;
+      --border: #30363d;
+      --text: #e6edf3;
+      --muted: #8b949e;
+      --accent: #4493f8;
+      --accent-soft: rgba(68, 147, 248, 0.16);
+      --code: #11161d;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: radial-gradient(circle at top, #161b22 0, #0d1117 42%, #090c10 100%);
+      color: var(--text);
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      border-right: 1px solid var(--border);
+      background: rgba(13, 17, 23, 0.96);
+      padding: 20px 16px;
+      overflow: auto;
+    }
+
+    .content {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      padding: 20px 24px;
+      gap: 16px;
+    }
+
+    .hero {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .title {
+      margin: 0;
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      line-height: 1.6;
+      font-size: 14px;
+    }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .button {
+      appearance: none;
+      border: 1px solid var(--border);
+      color: var(--text);
+      background: linear-gradient(180deg, #212830 0%, #161b22 100%);
+      border-radius: 10px;
+      padding: 10px 16px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+    }
+
+    .button:hover {
+      transform: translateY(-1px);
+      border-color: #4d5560;
+      background: linear-gradient(180deg, #262f39 0%, #1b212a 100%);
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .panel {
+      background: rgba(15, 23, 34, 0.92);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      backdrop-filter: blur(8px);
+    }
+
+    .tree-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .tree-root {
+      padding: 10px 8px 20px;
+    }
+
+    .tree-group {
+      margin-left: 12px;
+    }
+
+    .tree-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      border: 0;
+      background: transparent;
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 12px;
+      text-align: left;
+      cursor: pointer;
+      transition: background 0.15s ease, color 0.15s ease;
+      font-size: 14px;
+    }
+
+    .tree-row:hover {
+      background: var(--panel-hover);
+    }
+
+    .tree-row.active {
+      background: var(--accent-soft);
+      color: #fff;
+      box-shadow: inset 3px 0 0 var(--accent);
+    }
+
+    .tree-row.folder {
+      font-weight: 600;
+    }
+
+    .tree-icon {
+      width: 18px;
+      flex: 0 0 18px;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    .preview-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 16px 0;
+      flex-wrap: wrap;
+    }
+
+    .tabs {
+      display: inline-flex;
+      gap: 6px;
+      background: #0b1016;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 4px;
+    }
+
+    .tab {
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      padding: 8px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .tab.active {
+      background: #30363d;
+      color: #fff;
+    }
+
+    .meta {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .preview-body {
+      min-height: 70vh;
+      padding: 16px;
+    }
+
+    .surface {
+      min-height: 100%;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: #0d1117;
+      overflow: auto;
+    }
+
+    .empty {
+      display: grid;
+      place-items: center;
+      min-height: 50vh;
+      color: var(--muted);
+      text-align: center;
+      padding: 24px;
+      line-height: 1.8;
+    }
+
+    .markdown {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 48px 40px 64px;
+      line-height: 1.8;
+      font-size: 16px;
+      word-break: break-word;
+    }
+
+    .markdown h1,
+    .markdown h2,
+    .markdown h3,
+    .markdown h4 {
+      line-height: 1.3;
+      margin: 0 0 18px;
+      font-weight: 800;
+    }
+
+    .markdown h1 {
+      font-size: 64px;
+      text-align: center;
+      margin-top: 24px;
+      margin-bottom: 24px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 22px;
+    }
+
+    .markdown h2 {
+      font-size: 32px;
+      margin-top: 34px;
+    }
+
+    .markdown h3 {
+      font-size: 24px;
+      margin-top: 26px;
+    }
+
+    .markdown p,
+    .markdown ul,
+    .markdown ol,
+    .markdown pre,
+    .markdown blockquote {
+      margin: 0 0 16px;
+    }
+
+    .markdown ul,
+    .markdown ol {
+      padding-left: 22px;
+    }
+
+    .markdown code {
+      background: rgba(110, 118, 129, 0.18);
+      border-radius: 6px;
+      padding: 2px 6px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.92em;
+    }
+
+    .markdown pre {
+      background: var(--code);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      overflow: auto;
+    }
+
+    .markdown pre code {
+      background: transparent;
+      padding: 0;
+    }
+
+    .markdown blockquote {
+      border-left: 4px solid var(--accent);
+      margin-left: 0;
+      padding: 8px 0 8px 16px;
+      color: #c9d1d9;
+      background: rgba(68, 147, 248, 0.08);
+      border-radius: 0 10px 10px 0;
+    }
+
+    .code-view {
+      margin: 0;
+      padding: 20px 24px;
+      min-height: 70vh;
+      background: #0b0f14;
+      color: #dce5ef;
+      overflow: auto;
+      font-size: 14px;
+      line-height: 1.7;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @media (max-width: 900px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        max-height: 45vh;
+      }
+
+      .content {
+        padding: 16px;
+      }
+
+      .markdown {
+        padding: 28px 20px 40px;
+      }
+
+      .markdown h1 {
+        font-size: 42px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="hero">
+        <h1 class="title">本地文件夹预览器</h1>
+        <div class="subtitle">选择一个本地文件夹，自动生成左侧目录树；点击目标文件后，在右侧显示文本预览和源码。有使用问题，请联系——雪鹏</div>
+      </div>
+
+      <div class="toolbar">
+        <button id="pickButton" class="button" type="button">选择本地文件夹</button>
+        <input id="folderInput" type="file" webkitdirectory multiple class="hidden">
+        <span id="folderLabel" class="hint">尚未选择文件夹</span>
+      </div>
+
+      <div class="panel" style="margin-top: 18px;">
+        <div class="tree-header">
+          <span>文件目录</span>
+          <span id="fileCount">0 files</span>
+        </div>
+        <div id="treeRoot" class="tree-root">
+          <div class="empty">选择文件夹后，左侧会显示和截图类似的目录结构。</div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="content">
+      <div class="panel" style="flex: 1;">
+        <div class="preview-head">
+          <div class="tabs">
+            <!-- <button class="tab active" data-tab="preview" type="button">Preview</button> -->
+            <!-- <button class="tab" data-tab="code" type="button">Code</button> -->
+          </div>
+          <div id="meta" class="meta">未打开文件</div>
+        </div>
+
+        <div class="preview-body">
+          <div id="previewSurface" class="surface">
+            <div id="emptyState" class="empty">
+              先选择本地文件夹，再点击左侧txt文件。<br>
+              有使用问题，请联系——雪鹏
+            </div>
+            <article id="previewPane" class="markdown hidden"></article>
+            <pre id="codePane" class="code-view hidden"></pre>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const pickButton = document.getElementById('pickButton');
+    const folderInput = document.getElementById('folderInput');
+    const folderLabel = document.getElementById('folderLabel');
+    const fileCount = document.getElementById('fileCount');
+    const treeRoot = document.getElementById('treeRoot');
+    const meta = document.getElementById('meta');
+    const emptyState = document.getElementById('emptyState');
+    const previewPane = document.getElementById('previewPane');
+    const codePane = document.getElementById('codePane');
+    const tabButtons = Array.from(document.querySelectorAll('.tab'));
+
+    let currentTab = 'preview';
+    let currentFilePath = '';
+    let fileMap = new Map();
+
+    pickButton.addEventListener('click', () => folderInput.click());
+    folderInput.addEventListener('change', event => loadFolder(event.target.files));
+    tabButtons.forEach(button => {
+      button.addEventListener('click', () => switchTab(button.dataset.tab));
+    });
+
+    function switchTab(tab) {
+      currentTab = tab;
+      tabButtons.forEach(button => button.classList.toggle('active', button.dataset.tab === tab));
+      previewPane.classList.toggle('hidden', tab !== 'preview' || !currentFilePath);
+      codePane.classList.toggle('hidden', tab !== 'code' || !currentFilePath);
+      emptyState.classList.toggle('hidden', !!currentFilePath);
+    }
+
+    async function loadFolder(fileList) {
+      const files = Array.from(fileList || []);
+      fileMap = new Map();
+
+      if (!files.length) {
+        resetView();
+        return;
+      }
+
+      const rootName = getRootName(files[0]);
+      folderLabel.textContent = rootName;
+      fileCount.textContent = files.length + ' files';
+
+      const tree = createTreeNode(rootName, '');
+
+      for (const file of files) {
+        const relativePath = file.webkitRelativePath || file.name;
+        fileMap.set(relativePath, file);
+        appendToTree(tree, relativePath, file);
+      }
+
+      renderTree(tree);
+
+      const firstMarkdown = files
+        .map(file => file.webkitRelativePath || file.name)
+        .find(path => /\.md$/i.test(path));
+
+      const firstFile = firstMarkdown || (files[0].webkitRelativePath || files[0].name);
+      if (firstFile) {
+        await openFile(firstFile);
+      } else {
+        resetPreviewOnly();
+      }
+    }
+
+    function resetView() {
+      folderLabel.textContent = '尚未选择文件夹';
+      fileCount.textContent = '0 files';
+      treeRoot.innerHTML = '<div class="empty">选择文件夹后，左侧会显示目录结构。</div>';
+      resetPreviewOnly();
+    }
+
+    function resetPreviewOnly() {
+      currentFilePath = '';
+      meta.textContent = '未打开文件';
+      previewPane.innerHTML = '';
+      codePane.textContent = '';
+      emptyState.classList.remove('hidden');
+      previewPane.classList.add('hidden');
+      codePane.classList.add('hidden');
+    }
+
+    function getRootName(file) {
+      const path = file.webkitRelativePath || file.name;
+      return path.split('/')[0] || 'root';
+    }
+
+    function createTreeNode(name, path, kind = 'directory') {
+      return {
+        name,
+        path,
+        kind,
+        children: [],
+        file: null
+      };
+    }
+
+    function appendToTree(root, relativePath, file) {
+      const parts = relativePath.split('/');
+      let node = root;
+      let currentPath = '';
+
+      for (let index = 1; index < parts.length; index += 1) {
+        const part = parts[index];
+        currentPath = currentPath ? currentPath + '/' + part : parts[0] + '/' + part;
+        const isLast = index === parts.length - 1;
+        const kind = isLast ? 'file' : 'directory';
+
+        let next = node.children.find(item => item.name === part && item.kind === kind);
+        if (!next) {
+          next = createTreeNode(part, currentPath, kind);
+          node.children.push(next);
+        }
+
+        if (isLast) {
+          next.file = file;
+        }
+
+        node = next;
+      }
+    }
+
+    function sortTree(node) {
+      node.children.sort((a, b) => {
+        if (a.kind !== b.kind) return a.kind === 'directory' ? -1 : 1;
+        return a.name.localeCompare(b.name, 'zh-CN', { numeric: true, sensitivity: 'base' });
+      });
+      node.children.forEach(sortTree);
+    }
+
+    function renderTree(tree) {
+      sortTree(tree);
+      treeRoot.innerHTML = '';
+      treeRoot.appendChild(renderNode(tree, true));
+      highlightActiveFile();
+    }
+
+    function renderNode(node, expanded) {
+      const wrapper = document.createElement('div');
+      const row = document.createElement('button');
+      row.type = 'button';
+      row.className = 'tree-row ' + (node.kind === 'directory' ? 'folder' : 'file');
+
+      const icon = document.createElement('span');
+      icon.className = 'tree-icon';
+      icon.textContent = node.kind === 'directory' ? (expanded ? '⌄' : '›') : '📄';
+
+      const label = document.createElement('span');
+      label.textContent = node.name;
+
+      row.append(icon, label);
+      wrapper.appendChild(row);
+
+      if (node.kind === 'directory') {
+        const group = document.createElement('div');
+        group.className = 'tree-group';
+        group.style.display = expanded ? 'block' : 'none';
+
+        row.addEventListener('click', () => {
+          const isOpen = group.style.display !== 'none';
+          group.style.display = isOpen ? 'none' : 'block';
+          icon.textContent = isOpen ? '›' : '⌄';
+        });
+
+        node.children.forEach(child => {
+          group.appendChild(renderNode(child, child.kind === 'directory'));
+        });
+
+        wrapper.appendChild(group);
+      } else {
+        row.dataset.path = node.path;
+        row.addEventListener('click', () => openFile(node.path));
+      }
+
+      return wrapper;
+    }
+
+    async function openFile(path) {
+      const file = fileMap.get(path);
+      if (!file) return;
+
+      const text = await file.text();
+      currentFilePath = path;
+      const lineCount = text ? text.split(/\r?\n/).length : 0;
+      meta.textContent = path + ' · ' + lineCount + ' lines';
+      codePane.textContent = text;
+      previewPane.innerHTML = /\.md$/i.test(path) ? renderMarkdown(text) : '<pre>' + escapeHtml(text) + '</pre>';
+
+      emptyState.classList.add('hidden');
+      previewPane.classList.toggle('hidden', currentTab !== 'preview');
+      codePane.classList.toggle('hidden', currentTab !== 'code');
+      highlightActiveFile();
+    }
+
+    function highlightActiveFile() {
+      document.querySelectorAll('.tree-row.file').forEach(row => {
+        row.classList.toggle('active', row.dataset.path === currentFilePath);
+      });
+    }
+
+    function escapeHtml(text) {
+      return text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function renderInline(text) {
+      const escaped = escapeHtml(text);
+      return escaped
+        .replace(/`([^`]+)`/g, '<code>$1</code>')
+        .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*([^*]+)\*/g, '<em>$1</em>');
+    }
+
+    function renderMarkdown(markdown) {
+      const lines = markdown.replace(/\r/g, '').split('\n');
+      const html = [];
+      let inCode = false;
+      let codeBuffer = [];
+      let listType = '';
+
+      function closeList() {
+        if (listType) {
+          html.push('</' + listType + '>');
+          listType = '';
+        }
+      }
+
+      function closeCode() {
+        if (inCode) {
+          html.push('<pre><code>' + escapeHtml(codeBuffer.join('\n')) + '</code></pre>');
+          inCode = false;
+          codeBuffer = [];
+        }
+      }
+
+      for (const line of lines) {
+        if (line.startsWith('```')) {
+          closeList();
+          if (inCode) {
+            closeCode();
+          } else {
+            inCode = true;
+          }
+          continue;
+        }
+
+        if (inCode) {
+          codeBuffer.push(line);
+          continue;
+        }
+
+        if (!line.trim()) {
+          closeList();
+          continue;
+        }
+
+        const heading = line.match(/^(#{1,4})\s+(.*)$/);
+        if (heading) {
+          closeList();
+          const level = heading[1].length;
+          html.push('<h' + level + '>' + renderInline(heading[2]) + '</h' + level + '>');
+          continue;
+        }
+
+        const quote = line.match(/^>\s?(.*)$/);
+        if (quote) {
+          closeList();
+          html.push('<blockquote>' + renderInline(quote[1]) + '</blockquote>');
+          continue;
+        }
+
+        const ordered = line.match(/^\d+\.\s+(.*)$/);
+        if (ordered) {
+          if (listType !== 'ol') {
+            closeList();
+            listType = 'ol';
+            html.push('<ol>');
+          }
+          html.push('<li>' + renderInline(ordered[1]) + '</li>');
+          continue;
+        }
+
+        const unordered = line.match(/^[-*]\s+(.*)$/);
+        if (unordered) {
+          if (listType !== 'ul') {
+            closeList();
+            listType = 'ul';
+            html.push('<ul>');
+          }
+          html.push('<li>' + renderInline(unordered[1]) + '</li>');
+          continue;
+        }
+
+        closeList();
+        html.push('<p>' + renderInline(line) + '</p>');
+      }
+
+      closeList();
+      closeCode();
+
+      return html.join('');
+    }
+  </script>
+</body>
+</html>
