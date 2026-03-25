@@ -236,11 +236,12 @@
     }
 
     .caption {
-      padding: 14px 12px 16px;
-      text-align: center;
-      font-size: 14px;
-      line-height: 1.6;
+      padding: 14px 16px 16px;
+      text-align: left;
+      font-size: 10.5pt;
+      line-height: 1.8;
       word-break: break-word;
+      font-family: "FangSong", "仿宋", "STFangsong", serif;
     }
 
     .empty {
@@ -288,8 +289,13 @@
       </div>
 
       <div class="section">
-        <label class="label" for="docName">导出文件名</label>
+        <label class="label" for="docName">导出Word文件名</label>
         <input id="docName" type="text" value="图片汇总文档">
+
+        <div style="margin-top: 14px;">
+          <label class="label" for="titlePrefix">图片标题前缀</label>
+          <input id="titlePrefix" type="text" value="">
+        </div>
 
         <div class="row" style="margin-top: 14px;">
           <div>
@@ -310,7 +316,9 @@
         <div>已识别图片：<span id="imageCount">0</span></div>
         <div>排序方式：按文件名自然排序</div>
         <div>分页规则：每页固定 2 张图</div>
-        <div>如果使用过程中有问题，请联系雪鹏！</>
+        <div>标题格式：支持自定义前缀，仿宋五号，左对齐</div>
+        <div>作者：雪鹏</div>
+        <div>使用过程中，有问题请联系我！</div>
       </div>
     </aside>
 
@@ -334,6 +342,7 @@
     const folderInput = document.getElementById('folderInput');
     const exportButton = document.getElementById('exportButton');
     const docNameInput = document.getElementById('docName');
+    const titlePrefixInput = document.getElementById('titlePrefix');
     const imageWidthInput = document.getElementById('imageWidth');
     const imageHeightInput = document.getElementById('imageHeight');
     const folderName = document.getElementById('folderName');
@@ -348,6 +357,9 @@
     pickButton.addEventListener('click', () => folderInput.click());
     folderInput.addEventListener('change', event => loadImages(event.target.files));
     exportButton.addEventListener('click', exportWordDocument);
+    titlePrefixInput.addEventListener('input', () => {
+      if (imageItems.length) renderPreview();
+    });
     imageWidthInput.addEventListener('input', updatePreviewSize);
     imageHeightInput.addEventListener('input', updatePreviewSize);
 
@@ -428,7 +440,7 @@
 
           const caption = document.createElement('div');
           caption.className = 'caption';
-          caption.textContent = item.title;
+          caption.textContent = getDisplayTitle(item.title);
 
           card.append(box, caption);
           page.appendChild(card);
@@ -475,8 +487,8 @@
         const content = items.map(item => {
           return [
             '<div class="doc-item">',
-            '<img class="doc-image" src="' + item.dataUrl + '" alt="' + escapeHtml(item.title) + '">',
-            '<div class="doc-title">' + escapeHtml(item.title) + '</div>',
+            '<img class="doc-image" src="' + item.dataUrl + '" alt="' + escapeHtml(getDisplayTitle(item.title)) + '">',
+            '<div class="doc-title">' + escapeHtml(getDisplayTitle(item.title)) + '</div>',
             '</div>'
           ].join('');
         }).join('');
@@ -493,9 +505,9 @@
         'body { font-family: "Microsoft YaHei", "SimSun", sans-serif; color: #111; }',
         '.doc-page { page-break-inside: avoid; }',
         '.doc-page-break { page-break-after: always; }',
-        '.doc-item { page-break-inside: avoid; text-align: center; margin: 0 auto 28px; }',
+        '.doc-item { page-break-inside: avoid; margin: 0 auto 28px; }',
         '.doc-image { display: block; width: ' + width + 'px; height: ' + height + 'px; margin: 0 auto 10px; }',
-        '.doc-title { text-align: center; font-size: 14pt; line-height: 1.6; }',
+        '.doc-title { width: ' + width + 'px; margin: 0 auto; text-align: left; font-family: "FangSong", "仿宋", "STFangsong", serif; font-size: 10.5pt; line-height: 1.8; }',
         '</style></head><body>',
         blocks,
         '</body></html>'
@@ -513,6 +525,11 @@
 
     function getTitleFromFileName(name) {
       return name.replace(/\.[^.]+$/, '');
+    }
+
+    function getDisplayTitle(title) {
+      const prefix = titlePrefixInput.value || '';
+      return prefix + title;
     }
 
     function getImageWidth() {
