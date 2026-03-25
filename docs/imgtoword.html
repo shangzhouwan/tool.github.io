@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>图片批量生成 Word</title>
+  <link rel="icon" href="https://static.figma.com/app/icon/1/favicon.ico">
+  <meta name="author" content="雪鹏 17wanshu.cn">
+  <meta name="description" content="完全免费的图片批量生成 Word工具，一键排版，轻松替换，快速无广告，快速生成word，小编都爱我，我是全能的文字在线排版工具。">
+  <meta name="keywords" content="图片批量生成 Word,文字工具,在线排版,自动排版,自动排版工具,图片批量生成Word在线排版">
+  <style>
+    :root {
+      --bg: #0b1220;
+      --panel: rgba(13, 19, 32, 0.92);
+      --panel-soft: rgba(19, 28, 46, 0.9);
+      --border: rgba(148, 163, 184, 0.18);
+      --text: #e5eefc;
+      --muted: #98a7c2;
+      --accent: #6aa3ff;
+      --accent-2: #8cf2d6;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(106, 163, 255, 0.18), transparent 28%),
+        radial-gradient(circle at top right, rgba(140, 242, 214, 0.12), transparent 22%),
+        linear-gradient(180deg, #0d1423 0%, #09101d 100%);
+    }
+
+    .page {
+      width: min(1180px, calc(100vw - 32px));
+      margin: 24px auto;
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 20px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.24);
+    }
+
+    .sidebar {
+      padding: 22px 18px;
+      position: sticky;
+      top: 24px;
+      align-self: start;
+    }
+
+    .title {
+      margin: 0;
+      font-size: 28px;
+      line-height: 1.2;
+      font-weight: 800;
+      letter-spacing: 0.03em;
+    }
+
+    .subtitle {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.8;
+    }
+
+    .section {
+      margin-top: 22px;
+      padding-top: 18px;
+      border-top: 1px solid var(--border);
+    }
+
+    .label {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    input[type="text"],
+    input[type="number"] {
+      width: 100%;
+      border: 1px solid var(--border);
+      background: var(--panel-soft);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 11px 12px;
+      outline: none;
+      font-size: 14px;
+    }
+
+    input[type="number"]:focus,
+    input[type="text"]:focus {
+      border-color: rgba(106, 163, 255, 0.6);
+      box-shadow: 0 0 0 3px rgba(106, 163, 255, 0.14);
+    }
+
+    .button {
+      width: 100%;
+      border: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(106, 163, 255, 0.22), rgba(106, 163, 255, 0.08));
+      color: #fff;
+      border-radius: 14px;
+      padding: 12px 16px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: transform 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+    }
+
+    .button:hover {
+      transform: translateY(-1px);
+      border-color: rgba(106, 163, 255, 0.55);
+    }
+
+    .button.secondary {
+      background: linear-gradient(180deg, rgba(140, 242, 214, 0.16), rgba(140, 242, 214, 0.05));
+    }
+
+    .button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .hint {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.7;
+    }
+
+    .meta {
+      display: grid;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .main {
+      padding: 18px;
+    }
+
+    .main-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .main-title {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(106, 163, 255, 0.12);
+      color: #d8e7ff;
+      font-size: 12px;
+      border: 1px solid rgba(106, 163, 255, 0.2);
+    }
+
+    .preview-grid {
+      display: grid;
+      gap: 18px;
+    }
+
+    .preview-page {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      padding: 18px;
+      border-radius: 18px;
+      border: 1px solid var(--border);
+      background: rgba(10, 16, 28, 0.58);
+    }
+
+    .preview-page-label {
+      margin: 0 0 10px;
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .card {
+      background: rgba(15, 23, 38, 0.78);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      overflow: hidden;
+    }
+
+    .thumb-box {
+      aspect-ratio: 4 / 3;
+      background:
+        linear-gradient(45deg, rgba(255, 255, 255, 0.035) 25%, transparent 25%),
+        linear-gradient(-45deg, rgba(255, 255, 255, 0.035) 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, rgba(255, 255, 255, 0.035) 75%),
+        linear-gradient(-45deg, transparent 75%, rgba(255, 255, 255, 0.035) 75%);
+      background-size: 24px 24px;
+      background-position: 0 0, 0 12px, 12px -12px, -12px 0;
+      display: grid;
+      place-items: center;
+      padding: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .thumb-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .caption {
+      padding: 14px 12px 16px;
+      text-align: center;
+      font-size: 14px;
+      line-height: 1.6;
+      word-break: break-word;
+    }
+
+    .empty {
+      min-height: 60vh;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      color: var(--muted);
+      line-height: 1.9;
+      border: 1px dashed var(--border);
+      border-radius: 18px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @media (max-width: 960px) {
+      .page {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        position: static;
+      }
+
+      .preview-page {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <aside class="panel sidebar">
+      <h1 class="title">图片批量生成 Word</h1>
+      <div class="subtitle">
+        从本地文件夹选择图片后，页面会按统一尺寸生成排版，并导出为可直接用 Word 打开的 `.doc` 文档。
+      </div>
+
+      <div class="section">
+        <button id="pickButton" class="button" type="button">选择图片文件夹</button>
+        <input id="folderInput" type="file" accept="image/*" webkitdirectory multiple hidden>
+        <div class="hint">支持 `png/jpg/jpeg/webp/gif/bmp/svg`，标题默认取“文件名去掉扩展名”。</div>
+      </div>
+
+      <div class="section">
+        <label class="label" for="docName">导出文件名</label>
+        <input id="docName" type="text" value="图片汇总文档">
+
+        <div class="row" style="margin-top: 14px;">
+          <div>
+            <label class="label" for="imageWidth">图片宽度(px)</label>
+            <input id="imageWidth" type="number" min="50" value="420">
+          </div>
+          <div>
+            <label class="label" for="imageHeight">图片高度(px)</label>
+            <input id="imageHeight" type="number" min="50" value="280">
+          </div>
+        </div>
+
+        <button id="exportButton" class="button secondary" type="button" style="margin-top: 16px;" disabled>导出 Word 文档</button>
+      </div>
+
+      <div class="section meta">
+        <div>当前文件夹：<span id="folderName">未选择</span></div>
+        <div>已识别图片：<span id="imageCount">0</span></div>
+        <div>排序方式：按文件名自然排序</div>
+        <div>分页规则：每页固定 2 张图</div>
+        <div>如果使用过程中有问题，请联系雪鹏！</>
+      </div>
+    </aside>
+
+    <main class="panel main">
+      <div class="main-head">
+        <h2 class="main-title">导出预览</h2>
+        <span id="sizeBadge" class="badge">统一尺寸：420 × 280 · 每页 2 张</span>
+      </div>
+
+      <div id="emptyState" class="empty">
+        先选择一个包含图片的本地文件夹。<br>
+        选中后这里会显示将要写入 Word 的图片和标题效果。
+      </div>
+
+      <div id="previewGrid" class="preview-grid hidden"></div>
+    </main>
+  </div>
+
+  <script>
+    const pickButton = document.getElementById('pickButton');
+    const folderInput = document.getElementById('folderInput');
+    const exportButton = document.getElementById('exportButton');
+    const docNameInput = document.getElementById('docName');
+    const imageWidthInput = document.getElementById('imageWidth');
+    const imageHeightInput = document.getElementById('imageHeight');
+    const folderName = document.getElementById('folderName');
+    const imageCount = document.getElementById('imageCount');
+    const sizeBadge = document.getElementById('sizeBadge');
+    const emptyState = document.getElementById('emptyState');
+    const previewGrid = document.getElementById('previewGrid');
+
+    const imageItems = [];
+    const previewUrls = [];
+
+    pickButton.addEventListener('click', () => folderInput.click());
+    folderInput.addEventListener('change', event => loadImages(event.target.files));
+    exportButton.addEventListener('click', exportWordDocument);
+    imageWidthInput.addEventListener('input', updatePreviewSize);
+    imageHeightInput.addEventListener('input', updatePreviewSize);
+
+    async function loadImages(fileList) {
+      clearPreviewUrls();
+      imageItems.length = 0;
+      previewGrid.innerHTML = '';
+
+      const files = Array.from(fileList || []).filter(file => isImageFile(file.name));
+      files.sort((a, b) => {
+        const aPath = a.webkitRelativePath || a.name;
+        const bPath = b.webkitRelativePath || b.name;
+        return aPath.localeCompare(bPath, 'zh-CN', { numeric: true, sensitivity: 'base' });
+      });
+
+      if (!files.length) {
+        folderName.textContent = '未选择';
+        imageCount.textContent = '0';
+        exportButton.disabled = true;
+        emptyState.classList.remove('hidden');
+        previewGrid.classList.add('hidden');
+        return;
+      }
+
+      folderName.textContent = getFolderName(files[0]);
+      imageCount.textContent = String(files.length);
+      exportButton.disabled = false;
+
+      for (const file of files) {
+        const item = {
+          file,
+          title: getTitleFromFileName(file.name),
+          path: file.webkitRelativePath || file.name,
+          dataUrl: '',
+          previewUrl: ''
+        };
+        imageItems.push(item);
+      }
+
+      await Promise.all(imageItems.map(async item => {
+        item.dataUrl = await fileToDataUrl(item.file);
+        item.previewUrl = URL.createObjectURL(item.file);
+        previewUrls.push(item.previewUrl);
+      }));
+
+      renderPreview();
+    }
+
+    function renderPreview() {
+      previewGrid.innerHTML = '';
+      const width = getImageWidth();
+      const height = getImageHeight();
+      sizeBadge.textContent = '统一尺寸：' + width + ' × ' + height + ' · 每页 2 张';
+
+      chunkItems(imageItems, 2).forEach((items, pageIndex) => {
+        const section = document.createElement('section');
+
+        const label = document.createElement('p');
+        label.className = 'preview-page-label';
+        label.textContent = 'Page ' + (pageIndex + 1);
+        section.appendChild(label);
+
+        const page = document.createElement('div');
+        page.className = 'preview-page';
+
+        items.forEach(item => {
+          const card = document.createElement('article');
+          card.className = 'card';
+
+          const box = document.createElement('div');
+          box.className = 'thumb-box';
+          box.style.height = Math.max(180, Math.round(height * 0.72)) + 'px';
+
+          const img = document.createElement('img');
+          img.src = item.previewUrl;
+          img.alt = item.title;
+          box.appendChild(img);
+
+          const caption = document.createElement('div');
+          caption.className = 'caption';
+          caption.textContent = item.title;
+
+          card.append(box, caption);
+          page.appendChild(card);
+        });
+
+        section.appendChild(page);
+        previewGrid.appendChild(section);
+      });
+
+      emptyState.classList.add('hidden');
+      previewGrid.classList.remove('hidden');
+    }
+
+    function updatePreviewSize() {
+      const width = getImageWidth();
+      const height = getImageHeight();
+      sizeBadge.textContent = '统一尺寸：' + width + ' × ' + height + ' · 每页 2 张';
+      if (imageItems.length) {
+        renderPreview();
+      }
+    }
+
+    async function exportWordDocument() {
+      if (!imageItems.length) return;
+
+      exportButton.disabled = true;
+      exportButton.textContent = '正在生成 Word...';
+
+      try {
+        const width = getImageWidth();
+        const height = getImageHeight();
+        const html = buildWordHtml(width, height);
+        const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
+        const fileName = sanitizeFileName(docNameInput.value.trim() || '图片汇总文档') + '.doc';
+        downloadBlob(blob, fileName);
+      } finally {
+        exportButton.disabled = false;
+        exportButton.textContent = '导出 Word 文档';
+      }
+    }
+
+    function buildWordHtml(width, height) {
+      const blocks = chunkItems(imageItems, 2).map((items, pageIndex, pages) => {
+        const content = items.map(item => {
+          return [
+            '<div class="doc-item">',
+            '<img class="doc-image" src="' + item.dataUrl + '" alt="' + escapeHtml(item.title) + '">',
+            '<div class="doc-title">' + escapeHtml(item.title) + '</div>',
+            '</div>'
+          ].join('');
+        }).join('');
+
+        const pageBreak = pageIndex < pages.length - 1 ? ' doc-page-break' : '';
+        return '<div class="doc-page' + pageBreak + '">' + content + '</div>';
+      }).join('');
+
+      return [
+        '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">',
+        '<head><meta charset="utf-8"><title>' + escapeHtml(docNameInput.value.trim() || '图片汇总文档') + '</title>',
+        '<style>',
+        '@page { size: 210mm 297mm; margin: 18mm 16mm; }',
+        'body { font-family: "Microsoft YaHei", "SimSun", sans-serif; color: #111; }',
+        '.doc-page { page-break-inside: avoid; }',
+        '.doc-page-break { page-break-after: always; }',
+        '.doc-item { page-break-inside: avoid; text-align: center; margin: 0 auto 28px; }',
+        '.doc-image { display: block; width: ' + width + 'px; height: ' + height + 'px; margin: 0 auto 10px; }',
+        '.doc-title { text-align: center; font-size: 14pt; line-height: 1.6; }',
+        '</style></head><body>',
+        blocks,
+        '</body></html>'
+      ].join('');
+    }
+
+    function isImageFile(name) {
+      return /\.(png|jpe?g|webp|gif|bmp|svg)$/i.test(name);
+    }
+
+    function getFolderName(file) {
+      const path = file.webkitRelativePath || file.name;
+      return path.split('/')[0] || '未命名文件夹';
+    }
+
+    function getTitleFromFileName(name) {
+      return name.replace(/\.[^.]+$/, '');
+    }
+
+    function getImageWidth() {
+      return Math.max(50, Number(imageWidthInput.value) || 420);
+    }
+
+    function getImageHeight() {
+      return Math.max(50, Number(imageHeightInput.value) || 280);
+    }
+
+    function fileToDataUrl(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function escapeHtml(text) {
+      return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function sanitizeFileName(name) {
+      return name.replace(/[\\\\/:*?\"<>|]/g, '_');
+    }
+
+    function downloadBlob(blob, fileName) {
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    function clearPreviewUrls() {
+      while (previewUrls.length) {
+        URL.revokeObjectURL(previewUrls.pop());
+      }
+    }
+
+    function chunkItems(items, size) {
+      const chunks = [];
+      for (let index = 0; index < items.length; index += size) {
+        chunks.push(items.slice(index, index + size));
+      }
+      return chunks;
+    }
+  </script>
+</body>
+</html>
