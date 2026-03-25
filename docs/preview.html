@@ -318,6 +318,30 @@
       font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     }
 
+    .image-preview {
+      min-height: 70vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background:
+        linear-gradient(45deg, rgba(255, 255, 255, 0.03) 25%, transparent 25%),
+        linear-gradient(-45deg, rgba(255, 255, 255, 0.03) 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, rgba(255, 255, 255, 0.03) 75%),
+        linear-gradient(-45deg, transparent 75%, rgba(255, 255, 255, 0.03) 75%);
+      background-size: 24px 24px;
+      background-position: 0 0, 0 12px, 12px -12px, -12px 0;
+    }
+
+    .image-preview img {
+      max-width: 100%;
+      max-height: 72vh;
+      object-fit: contain;
+      border-radius: 12px;
+      box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.02);
+    }
+
     .hidden {
       display: none !important;
     }
@@ -409,6 +433,7 @@
     let currentTab = 'preview';
     let currentFilePath = '';
     let fileMap = new Map();
+     let currentObjectUrl = '';
 
     pickButton.addEventListener('click', () => folderInput.click());
     folderInput.addEventListener('change', event => loadFolder(event.target.files));
@@ -467,6 +492,7 @@
     }
 
     function resetPreviewOnly() {
+      revokeObjectUrl();
       currentFilePath = '';
       meta.textContent = '未打开文件';
       previewPane.innerHTML = '';
@@ -476,7 +502,7 @@
       codePane.classList.add('hidden');
     }
 
-    function getRootName(file) {
+   function getRootName(file) {
       const path = file.webkitRelativePath || file.name;
       return path.split('/')[0] || 'root';
     }
@@ -575,12 +601,21 @@
       const file = fileMap.get(path);
       if (!file) return;
 
-      const text = await file.text();
       currentFilePath = path;
-      const lineCount = text ? text.split(/\r?\n/).length : 0;
-      meta.textContent = path + ' · ' + lineCount + ' lines';
-      codePane.textContent = text;
-      previewPane.innerHTML = /\.md$/i.test(path) ? renderMarkdown(text) : '<pre>' + escapeHtml(text) + '</pre>';
+      revokeObjectUrl();
+
+      if (isImageFile(path)) {
+        currentObjectUrl = URL.createObjectURL(file);
+        meta.textContent = path + ' · image preview';
+        codePane.textContent = '该文件为图片，源码视图不显示二进制内容。';
+        previewPane.innerHTML = '<div class="image-preview"><img src="' + currentObjectUrl + '" alt="' + escapeHtml(path) + '"></div>';
+      } else {
+        const text = await file.text();
+        const lineCount = text ? text.split(/\r?\n/).length : 0;
+        meta.textContent = path + ' · ' + lineCount + ' lines';
+        codePane.textContent = text;
+        previewPane.innerHTML = /\.md$/i.test(path) ? renderMarkdown(text) : '<pre>' + escapeHtml(text) + '</pre>';
+      }
 
       emptyState.classList.add('hidden');
       previewPane.classList.toggle('hidden', currentTab !== 'preview');
@@ -601,6 +636,17 @@
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#39;');
+    }
+
+    function isImageFile(path) {
+      return /\.(png|jpe?g|gif|webp|bmp|svg)$/i.test(path);
+    }
+
+    function revokeObjectUrl() {
+      if (currentObjectUrl) {
+        URL.revokeObjectURL(currentObjectUrl);
+        currentObjectUrl = '';
+      }
     }
 
     function renderInline(text) {
