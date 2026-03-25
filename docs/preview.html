@@ -157,6 +157,27 @@
       font-size: 13px;
     }
 
+    .tree-tools {
+      padding: 12px 16px 0;
+      flex-shrink: 0;
+    }
+
+    .search-input {
+      width: 100%;
+      border: 1px solid var(--border);
+      background: var(--panel-soft);
+      color: var(--text);
+      border-radius: 10px;
+      padding: 10px 12px;
+      outline: none;
+      font-size: 14px;
+    }
+
+    .search-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(68, 147, 248, 0.14);
+    }
+
     .tree-group {
       margin-left: 12px;
     }
@@ -230,6 +251,37 @@
       background: #30363d;
       color: #fff;
     }
+     .preview-actions {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .font-tools {
+      display: inline-flex;
+      gap: 6px;
+      align-items: center;
+      padding: 4px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #0b1016;
+    }
+
+    .font-button {
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .font-button:hover {
+      background: #30363d;
+      color: #fff;
+    }
 
     .meta {
       color: var(--muted);
@@ -271,7 +323,7 @@
       margin: 0 auto;
       padding: 48px 40px 64px;
       line-height: 1.8;
-      font-size: 16px;
+      font-size: var(--preview-font-size, 16px);
       word-break: break-word;
       overflow-wrap: anywhere;
       white-space: normal;
@@ -359,7 +411,7 @@
       color: #dce5ef;
       overflow-y: auto;
       overflow-x: hidden;
-      font-size: 14px;
+      font-size: var(--code-font-size, 14px);
       line-height: 1.7;
       font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
       white-space: pre-wrap;
@@ -452,6 +504,9 @@
           <span>文件目录</span>
           <span id="fileCount">0 files</span>
         </div>
+        <div class="tree-tools">
+          <input id="searchInput" class="search-input" type="text" placeholder="模糊查找文件名或路径">
+        </div>
         <div id="treeRoot" class="tree-root">
           <div class="empty">选择文件夹后，左侧会显示和截图类似的目录结构。</div>
         </div>
@@ -461,9 +516,16 @@
     <main class="content">
       <div class="panel" style="flex: 1;">
         <div class="preview-head">
-          <div class="tabs">
-            <button class="tab active" data-tab="preview" type="button">预览</button> 
-            <button class="tab" data-tab="code" type="button">默认</button>
+           <div class="preview-actions">
+            <div class="tabs">
+              <button class="tab active" data-tab="preview" type="button">预览</button>
+              <button class="tab" data-tab="code" type="button">默认</button>
+            </div>
+            <div class="font-tools">
+              <button id="fontDecrease" class="font-button" type="button">字体变小</button>
+              <button id="fontReset" class="font-button" type="button">字体</button>
+              <button id="fontIncrease" class="font-button" type="button">字体变大</button>
+            </div>
           </div>
           <div id="meta" class="meta">未打开文件</div>
         </div>
@@ -488,22 +550,37 @@
     const folderLabel = document.getElementById('folderLabel');
     const fileCount = document.getElementById('fileCount');
     const treeRoot = document.getElementById('treeRoot');
+    const searchInput = document.getElementById('searchInput');
     const meta = document.getElementById('meta');
     const emptyState = document.getElementById('emptyState');
     const previewPane = document.getElementById('previewPane');
     const codePane = document.getElementById('codePane');
     const tabButtons = Array.from(document.querySelectorAll('.tab'));
+    const fontDecrease = document.getElementById('fontDecrease');
+    const fontReset = document.getElementById('fontReset');
+    const fontIncrease = document.getElementById('fontIncrease');
 
     let currentTab = 'preview';
     let currentFilePath = '';
     let fileMap = new Map();
-     let currentObjectUrl = '';
+    let currentObjectUrl = '';
+    let currentTree = null;
+    let searchKeyword = '';
+    let previewFontSize = 16;
+    let codeFontSize = 14;
 
     pickButton.addEventListener('click', () => folderInput.click());
     folderInput.addEventListener('change', event => loadFolder(event.target.files));
+     searchInput.addEventListener('input', event => {
+      searchKeyword = (event.target.value || '').trim().toLowerCase();
+      renderTree();
+    });
     tabButtons.forEach(button => {
       button.addEventListener('click', () => switchTab(button.dataset.tab));
     });
+    fontDecrease.addEventListener('click', () => updateFontSize(-1));
+    fontIncrease.addEventListener('click', () => updateFontSize(1));
+    fontReset.addEventListener('click', resetFontSize);
 
     function switchTab(tab) {
       currentTab = tab;
@@ -534,7 +611,8 @@
         appendToTree(tree, relativePath, file);
       }
 
-      renderTree(tree);
+      currentTree = tree;
+      renderTree();
 
       const firstMarkdown = files
         .map(file => file.webkitRelativePath || file.name)
@@ -551,6 +629,7 @@
     function resetView() {
       folderLabel.textContent = '尚未选择文件夹';
       fileCount.textContent = '0 files';
+      currentTree = null;
       treeRoot.innerHTML = '<div class="empty">选择文件夹后，左侧会显示目录结构。</div>';
       resetPreviewOnly();
     }
@@ -614,11 +693,16 @@
       node.children.forEach(sortTree);
     }
 
-    function renderTree(tree) {
-      sortTree(tree);
+    function renderTree() {
+       if (!currentTree) return;
+      sortTree(currentTree);
       treeRoot.innerHTML = '';
-      treeRoot.appendChild(renderNode(tree, true));
-      highlightActiveFile();
+      const filteredTree = filterTree(currentTree, searchKeyword);
+      if (!filteredTree || !filteredTree.children.length) {
+        treeRoot.innerHTML = '<div class="empty">没有找到匹配的文件，请换个关键字试试。</div>';
+        return;
+      }
+      treeRoot.appendChild(renderNode(filteredTree, true));
     }
 
     function renderNode(node, expanded) {
@@ -659,6 +743,64 @@
       }
 
       return wrapper;
+    }
+
+    function filterTree(node, keyword) {
+      if (!keyword) return cloneTree(node);
+      const normalizedName = (node.name || '').toLowerCase();
+      const normalizedPath = (node.path || '').toLowerCase();
+      const matchesSelf =
+        fuzzyMatch(normalizedName, keyword) ||
+        fuzzyMatch(normalizedPath, keyword);
+      const children = (node.children || [])
+        .map(child => filterTree(child, keyword))
+        .filter(Boolean);
+
+      if (matchesSelf || children.length) {
+        return {
+          ...node,
+          children
+        };
+      }
+
+      return null;
+    }
+
+    function cloneTree(node) {
+      return {
+        ...node,
+        children: (node.children || []).map(cloneTree)
+      };
+    }
+
+    function fuzzyMatch(text, keyword) {
+      if (!keyword) return true;
+      if (text.includes(keyword)) return true;
+      let index = 0;
+      for (const char of text) {
+        if (char === keyword[index]) {
+          index += 1;
+          if (index === keyword.length) return true;
+        }
+      }
+      return false;
+    }
+
+    function updateFontSize(step) {
+      previewFontSize = Math.min(28, Math.max(12, previewFontSize + step));
+      codeFontSize = Math.min(24, Math.max(12, codeFontSize + step));
+      applyFontSize();
+    }
+
+    function resetFontSize() {
+      previewFontSize = 16;
+      codeFontSize = 14;
+      applyFontSize();
+    }
+
+    function applyFontSize() {
+      document.documentElement.style.setProperty('--preview-font-size', previewFontSize + 'px');
+      document.documentElement.style.setProperty('--code-font-size', codeFontSize + 'px');
     }
 
     async function openFile(path) {
@@ -713,6 +855,8 @@
       }
     }
 
+    applyFontSize();
+    
     function renderInline(text) {
       const escaped = escapeHtml(text);
       return escaped
