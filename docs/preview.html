@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>本地文件夹预览</title>
   <link rel="icon" href="https://static.figma.com/app/icon/1/favicon.ico">
+  <script src="https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
   <style>
     :root {
       --bg: #0d1117;
@@ -476,6 +478,174 @@
       background: rgba(255, 255, 255, 0.02);
     }
 
+    .document-preview {
+      min-height: 70vh;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 16px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
+    }
+
+    .document-frame {
+      position: relative;
+      flex: 1;
+      min-height: 68vh;
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      background: #0a0d12;
+    }
+
+    .document-frame iframe,
+    .document-frame object,
+    .document-frame embed {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+      display: block;
+      background: #fff;
+    }
+
+    .document-note {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .document-note a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .document-note a:hover {
+      text-decoration: underline;
+    }
+
+    .office-preview {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 28px 24px 40px;
+      color: var(--preview-text);
+      font-size: var(--preview-font-size, 16px);
+      line-height: 1.8;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+    }
+
+    .office-preview.docx {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.015));
+    }
+
+    .office-preview.docx h1,
+    .office-preview.docx h2,
+    .office-preview.docx h3,
+    .office-preview.docx h4,
+    .office-preview.docx h5,
+    .office-preview.docx h6 {
+      line-height: 1.35;
+      margin: 0 0 14px;
+    }
+
+    .office-preview.docx p,
+    .office-preview.docx ul,
+    .office-preview.docx ol,
+    .office-preview.docx table {
+      margin: 0 0 14px;
+    }
+
+    .office-preview.docx table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .office-preview.docx td,
+    .office-preview.docx th {
+      border: 1px solid var(--border);
+      padding: 8px 10px;
+    }
+
+    .pptx-preview {
+      display: grid;
+      gap: 18px;
+    }
+
+    .slide-card {
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.02));
+      overflow: hidden;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+    }
+
+    .slide-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(68, 147, 248, 0.08);
+    }
+
+    .slide-index {
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .slide-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin: 0;
+      color: var(--preview-text);
+    }
+
+    .slide-body {
+      padding: 18px;
+      color: var(--preview-text);
+      line-height: 1.75;
+      white-space: pre-line;
+    }
+
+    .office-fallback {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 28px 24px;
+    }
+
+    .office-fallback-card {
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 22px 20px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.015));
+    }
+
+    .office-fallback-title {
+      margin: 0 0 12px;
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--preview-text);
+    }
+
+    .office-fallback-text {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.8;
+    }
+
     .hidden {
       display: none !important;
     }
@@ -890,6 +1060,32 @@
         meta.textContent = path + ' · image preview';
         codePane.textContent = '该文件为图片，源码视图不显示二进制内容。';
         previewPane.innerHTML = '<div class="image-preview"><img src="' + currentObjectUrl + '" alt="' + escapeHtml(path) + '"></div>';
+      } else if (isPdfFile(path)) {
+        currentObjectUrl = URL.createObjectURL(file);
+        meta.textContent = path + ' · PDF preview';
+        codePane.textContent = '该文件为 PDF，源码视图不显示二进制内容。';
+        previewPane.innerHTML = renderEmbeddedDocument({
+          url: currentObjectUrl,
+          path,
+          type: 'pdf',
+          note: '已启用 PDF 内嵌预览。若当前浏览器不支持，请点击右侧链接在新窗口打开。'
+        });
+      } else if (isPptxFile(path)) {
+        meta.textContent = path + ' · PPTX preview';
+        codePane.textContent = '该文件为 PowerPoint 文档，源码视图不显示二进制内容。';
+        previewPane.innerHTML = await renderPptxPreview(file, path);
+      } else if (isLegacyPptFile(path)) {
+        meta.textContent = path + ' · PPT preview';
+        codePane.textContent = '该文件为老式 PowerPoint 文档，源码视图不显示二进制内容。';
+        previewPane.innerHTML = await renderLegacyOfficePreview(file, path, 'ppt');
+      } else if (isDocxFile(path)) {
+        meta.textContent = path + ' · DOCX preview';
+        codePane.textContent = '该文件为 Word 文档，源码视图不显示二进制内容。';
+        previewPane.innerHTML = await renderDocxPreview(file, path);
+      } else if (isLegacyDocFile(path)) {
+        meta.textContent = path + ' · Word preview';
+        codePane.textContent = '该文件为老式 Word 文档，源码视图不显示二进制内容。';
+        previewPane.innerHTML = await renderLegacyOfficePreview(file, path, 'doc');
       } else {
         const text = await file.text();
         const lineCount = text ? text.split(/\r?\n/).length : 0;
@@ -921,6 +1117,383 @@
 
     function isImageFile(path) {
       return /\.(png|jpe?g|gif|webp|bmp|svg)$/i.test(path);
+    }
+
+    function isPdfFile(path) {
+      return /\.pdf$/i.test(path);
+    }
+
+    function isPptxFile(path) {
+      return /\.pptx$/i.test(path);
+    }
+
+    function isLegacyPptFile(path) {
+      return /\.ppt$/i.test(path);
+    }
+
+    function isDocxFile(path) {
+      return /\.docx$/i.test(path);
+    }
+
+    function isLegacyDocFile(path) {
+      return /\.doc$/i.test(path);
+    }
+
+    function renderEmbeddedDocument({ url, path, type, note }) {
+      const escapedUrl = escapeHtml(url);
+      const escapedPath = escapeHtml(path);
+      const safeNote = escapeHtml(note || '');
+      const mimeType = type === 'pdf'
+        ? 'application/pdf'
+        : type === 'ppt'
+          ? 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+          : 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+      const frameContent = type === 'pdf'
+        ? `<iframe src="${escapedUrl}#toolbar=1&navpanes=0&view=FitH" title="${escapedPath}"></iframe>`
+        : `<object data="${escapedUrl}" type="${mimeType}">
+             <embed src="${escapedUrl}" type="${mimeType}">
+           </object>`;
+
+      return `
+        <div class="document-preview">
+          <div class="document-frame">
+            ${frameContent}
+          </div>
+          <div class="document-note">
+            <span>${safeNote}</span>
+            <a href="${escapedUrl}" target="_blank" rel="noopener noreferrer">新窗口打开</a>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderOfficeFallback({ url, path, title, note }) {
+      const escapedUrl = escapeHtml(url);
+      return `
+        <div class="office-fallback">
+          <div class="office-fallback-card">
+            <h3 class="office-fallback-title">${escapeHtml(title)}</h3>
+            <p class="office-fallback-text">${escapeHtml(note)}</p>
+            <div class="document-note" style="margin-top: 14px;">
+              <span>${escapeHtml(path)}</span>
+              <a href="${escapedUrl}" target="_blank" rel="noopener noreferrer">新窗口打开</a>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    async function renderDocxPreview(file, path) {
+      if (!window.mammoth || typeof window.mammoth.convertToHtml !== 'function') {
+        currentObjectUrl = URL.createObjectURL(file);
+        return renderOfficeFallback({
+          url: currentObjectUrl,
+          path,
+          title: 'DOCX 解析库未加载',
+          note: '当前环境未成功加载 DOCX 解析能力，请点击右侧链接在新窗口打开或下载查看。'
+        });
+      }
+
+      try {
+        const arrayBuffer = await file.arrayBuffer();
+        const result = await window.mammoth.convertToHtml(
+          { arrayBuffer },
+          {
+            includeDefaultStyleMap: true,
+            ignoreEmptyParagraphs: false
+          }
+        );
+        const messages = (result.messages || []).map(item => item.message).filter(Boolean);
+        return `
+          <div class="office-preview docx">
+            ${result.value || '<div class="empty">文档内容为空。</div>'}
+            ${messages.length ? `
+              <div class="document-note">
+                <span>已完成 DOCX 内容解析，部分复杂样式可能与原文略有差异。</span>
+                <span>${escapeHtml(messages.slice(0, 2).join('；'))}</span>
+              </div>
+            ` : `
+              <div class="document-note">
+                <span>已完成 DOCX 内容解析，当前预览为浏览器排版结果。</span>
+              </div>
+            `}
+          </div>
+        `;
+      } catch (error) {
+        currentObjectUrl = URL.createObjectURL(file);
+        return renderOfficeFallback({
+          url: currentObjectUrl,
+          path,
+          title: 'DOCX 解析失败',
+          note: '当前文档未能成功解析为网页内容。你仍可点击右侧链接在新窗口打开或下载查看。'
+        });
+      }
+    }
+
+    async function renderPptxPreview(file, path) {
+      if (!window.JSZip || typeof window.JSZip.loadAsync !== 'function') {
+        currentObjectUrl = URL.createObjectURL(file);
+        return renderOfficeFallback({
+          url: currentObjectUrl,
+          path,
+          title: 'PPTX 解析库未加载',
+          note: '当前环境未成功加载 PPTX 解析能力，请点击右侧链接在新窗口打开或下载查看。'
+        });
+      }
+
+      try {
+        const zip = await window.JSZip.loadAsync(await file.arrayBuffer());
+        const slideEntries = Object.keys(zip.files)
+          .filter(name => /^ppt\/slides\/slide\d+\.xml$/i.test(name))
+          .sort((a, b) => {
+            const aNum = Number((a.match(/slide(\d+)\.xml/i) || [])[1] || 0);
+            const bNum = Number((b.match(/slide(\d+)\.xml/i) || [])[1] || 0);
+            return aNum - bNum;
+          });
+
+        const slides = [];
+        for (const entryName of slideEntries) {
+          const xml = await zip.files[entryName].async('string');
+          const texts = Array.from(xml.matchAll(/<a:t>([\s\S]*?)<\/a:t>/g))
+            .map(match => decodeXmlText(match[1]))
+            .map(text => text.trim())
+            .filter(Boolean);
+          slides.push(texts);
+        }
+
+        if (!slides.length) {
+          currentObjectUrl = URL.createObjectURL(file);
+          return renderOfficeFallback({
+            url: currentObjectUrl,
+            path,
+            title: 'PPTX 中未提取到可展示内容',
+            note: '该演示文稿可能主要由图片、图表或特殊对象构成，当前仅能提取可读文本。请点击右侧链接在新窗口打开查看原文件。'
+          });
+        }
+
+        return `
+          <div class="office-preview">
+            <div class="pptx-preview">
+              ${slides.map((slideTexts, index) => {
+                const title = slideTexts[0] || `第 ${index + 1} 页`;
+                const body = slideTexts.slice(1).join('\n') || '本页未提取到更多正文文本。';
+                return `
+                  <section class="slide-card">
+                    <div class="slide-head">
+                      <span class="slide-index">Slide ${index + 1}</span>
+                      <h3 class="slide-title">${escapeHtml(title)}</h3>
+                    </div>
+                    <div class="slide-body">${escapeHtml(body)}</div>
+                  </section>
+                `;
+              }).join('')}
+            </div>
+            <div class="document-note">
+              <span>已提取 PPTX 的文本内容进行按页预览。图片、动画、切换和复杂版式不会完全还原。</span>
+            </div>
+          </div>
+        `;
+      } catch (error) {
+        currentObjectUrl = URL.createObjectURL(file);
+        return renderOfficeFallback({
+          url: currentObjectUrl,
+          path,
+          title: 'PPTX 解析失败',
+          note: '当前演示文稿未能成功解析为文本预览。你仍可点击右侧链接在新窗口打开或下载查看。'
+        });
+      }
+    }
+
+    function decodeXmlText(text) {
+      return String(text || '')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&amp;/g, '&')
+        .replace(/&quot;/g, '"')
+        .replace(/&apos;/g, "'");
+    }
+
+    async function renderLegacyOfficePreview(file, path, type) {
+      try {
+        const arrayBuffer = await file.arrayBuffer();
+        const extracted = extractLegacyOfficeText(arrayBuffer, type);
+        if (!extracted.blocks.length) {
+          currentObjectUrl = URL.createObjectURL(file);
+          return renderOfficeFallback({
+            url: currentObjectUrl,
+            path,
+            title: type === 'doc' ? 'DOC 未提取到可读文本' : 'PPT 未提取到可读文本',
+            note: type === 'doc'
+              ? '当前文档可能主要由复杂版式、对象或图片构成，浏览器未能直接提取正文。你仍可点击右侧链接在新窗口打开，或转换为 DOCX 获得更好的预览。'
+              : '当前演示文稿可能主要由图片、图表或特殊对象构成，浏览器未能直接提取正文。你仍可点击右侧链接在新窗口打开，或转换为 PPTX 获得更好的预览。'
+          });
+        }
+
+        return type === 'doc'
+          ? renderLegacyDocBlocks(extracted)
+          : renderLegacyPptBlocks(extracted);
+      } catch (error) {
+        currentObjectUrl = URL.createObjectURL(file);
+        return renderOfficeFallback({
+          url: currentObjectUrl,
+          path,
+          title: type === 'doc' ? 'DOC 解析失败' : 'PPT 解析失败',
+          note: '当前浏览器未能完成旧版 Office 文档解析。你仍可点击右侧链接在新窗口打开，或转换为新格式后再次预览。'
+        });
+      }
+    }
+
+    function extractLegacyOfficeText(arrayBuffer, type) {
+      const bytes = new Uint8Array(arrayBuffer);
+      const unicodeRuns = collectUtf16LeRuns(bytes, 4);
+      const asciiRuns = collectAsciiRuns(bytes, 6);
+      const merged = uniqueNormalizedBlocks(unicodeRuns.concat(asciiRuns));
+      const cleaned = merged
+        .map(text => normalizeExtractedOfficeText(text))
+        .filter(Boolean);
+
+      if (type === 'ppt') {
+        return {
+          blocks: cleaned.slice(0, 80)
+        };
+      }
+
+      return {
+        blocks: cleaned.slice(0, 120)
+      };
+    }
+
+    function collectUtf16LeRuns(bytes, minChars) {
+      const results = [];
+      let chars = [];
+      for (let index = 0; index + 1 < bytes.length; index += 2) {
+        const code = bytes[index] | (bytes[index + 1] << 8);
+        if (isReadableOfficeChar(code)) {
+          chars.push(String.fromCharCode(code));
+          continue;
+        }
+        if (chars.length >= minChars) {
+          results.push(chars.join(''));
+        }
+        chars = [];
+      }
+      if (chars.length >= minChars) {
+        results.push(chars.join(''));
+      }
+      return results;
+    }
+
+    function collectAsciiRuns(bytes, minChars) {
+      const results = [];
+      let chars = [];
+      for (let index = 0; index < bytes.length; index += 1) {
+        const code = bytes[index];
+        if (isReadableAsciiChar(code)) {
+          chars.push(String.fromCharCode(code));
+          continue;
+        }
+        if (chars.length >= minChars) {
+          results.push(chars.join(''));
+        }
+        chars = [];
+      }
+      if (chars.length >= minChars) {
+        results.push(chars.join(''));
+      }
+      return results;
+    }
+
+    function isReadableOfficeChar(code) {
+      return (
+        code === 9 ||
+        code === 10 ||
+        code === 13 ||
+        (code >= 32 && code <= 126) ||
+        (code >= 0x4e00 && code <= 0x9fff) ||
+        (code >= 0x3000 && code <= 0x303f) ||
+        (code >= 0xff00 && code <= 0xffef)
+      );
+    }
+
+    function isReadableAsciiChar(code) {
+      return code === 9 || code === 10 || code === 13 || (code >= 32 && code <= 126);
+    }
+
+    function uniqueNormalizedBlocks(blocks) {
+      const seen = new Set();
+      const results = [];
+      for (const block of blocks) {
+        const normalized = String(block || '').replace(/\s+/g, ' ').trim();
+        if (!normalized || normalized.length < 2) continue;
+        if (seen.has(normalized)) continue;
+        seen.add(normalized);
+        results.push(block);
+      }
+      return results;
+    }
+
+    function normalizeExtractedOfficeText(text) {
+      return String(text || '')
+        .replace(/\u0000/g, '')
+        .replace(/[\u0001-\u0008\u000b\u000c\u000e-\u001f]/g, ' ')
+        .replace(/\s+\n/g, '\n')
+        .replace(/\n{3,}/g, '\n\n')
+        .replace(/[ \t]{2,}/g, ' ')
+        .trim();
+    }
+
+    function renderLegacyDocBlocks(extracted) {
+      const title = extracted.blocks[0] || 'DOC 文档内容';
+      const paragraphs = extracted.blocks.slice(1, 60);
+      return `
+        <div class="office-preview docx">
+          <h1>${escapeHtml(title)}</h1>
+          ${paragraphs.length
+            ? paragraphs.map(text => `<p>${escapeHtml(text)}</p>`).join('')
+            : '<div class="empty">未提取到更多正文文本。</div>'}
+          <div class="document-note">
+            <span>已直接解析老式 DOC 中的可读文本。该预览侧重正文读取，无法完整还原原始版式、页眉页脚和复杂对象。</span>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderLegacyPptBlocks(extracted) {
+      const slides = [];
+      let buffer = [];
+      extracted.blocks.forEach(text => {
+        if (buffer.length >= 5) {
+          slides.push(buffer);
+          buffer = [];
+        }
+        buffer.push(text);
+      });
+      if (buffer.length) {
+        slides.push(buffer);
+      }
+
+      return `
+        <div class="office-preview">
+          <div class="pptx-preview">
+            ${slides.slice(0, 30).map((slideTexts, index) => {
+              const title = slideTexts[0] || `第 ${index + 1} 页`;
+              const body = slideTexts.slice(1).join('\n') || '本页未提取到更多正文文本。';
+              return `
+                <section class="slide-card">
+                  <div class="slide-head">
+                    <span class="slide-index">Slide ${index + 1}</span>
+                    <h3 class="slide-title">${escapeHtml(title)}</h3>
+                  </div>
+                  <div class="slide-body">${escapeHtml(body)}</div>
+                </section>
+              `;
+            }).join('')}
+          </div>
+          <div class="document-note">
+            <span>已直接解析老式 PPT 中的可读文本。该预览适合查看标题和正文摘录，无法完整还原动画、图片和复杂排版。</span>
+          </div>
+        </div>
+      `;
     }
 
     function revokeObjectUrl() {
